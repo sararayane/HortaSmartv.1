@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "84033952753",
+    "project_id": "smarthorta-f4c2b",
+    "storage_bucket": "smarthorta-f4c2b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:84033952753:android:1193f05ed3f0c021b34250",
+        "android_client_info": {
+          "package_name": "br.com.hortasmart.hortasmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBznfq0S-Lel35DPlm_djTbAozkKsYoY8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
