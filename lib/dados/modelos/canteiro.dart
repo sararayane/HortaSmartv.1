@@ -13,6 +13,7 @@ class Canteiro {
     required this.intervaloHoras,
     required this.valorSeco,
     required this.valorMolhado,
+    this.caminhoImagem,
   });
 
   final String id;
@@ -27,6 +28,9 @@ class Canteiro {
   final int valorSeco;
   final int valorMolhado;
 
+  // Caminho da foto personalizada do canteiro.
+  final String? caminhoImagem;
+
   Canteiro copiarCom({
     String? nome,
     String? cultura,
@@ -38,6 +42,8 @@ class Canteiro {
     int? intervaloHoras,
     int? valorSeco,
     int? valorMolhado,
+    String? caminhoImagem,
+    bool removerImagem = false,
   }) {
     return Canteiro(
       id: id,
@@ -51,6 +57,7 @@ class Canteiro {
       intervaloHoras: intervaloHoras ?? this.intervaloHoras,
       valorSeco: valorSeco ?? this.valorSeco,
       valorMolhado: valorMolhado ?? this.valorMolhado,
+      caminhoImagem: removerImagem ? null : caminhoImagem ?? this.caminhoImagem,
     );
   }
 }

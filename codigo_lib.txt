@@ -1,0 +1,4753 @@
+==================================================
+CODIGO FONTE HORTASMART - PASTA LIB
+==================================================
+
+C:\Users\sarar\hortasmart>(
+echo. 
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\main.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\main.dart" 
+) 
+
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\main.dart
+==================================================
+import 'package:flutter/material.dart';
+import 'principal/aplicativo.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const AplicativoHortasmart());
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\area_pagina.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\area_pagina.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\area_pagina.dart
+==================================================
+import 'package:flutter/material.dart';
+
+/// Área centralizada e responsiva usada pelas páginas principais.
+class AreaPagina extends StatelessWidget {
+  const AreaPagina({super.key, required this.child, this.padding});
+
+  final Widget child;
+  final EdgeInsets? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final margemHorizontal = constraints.maxWidth < 370 ? 12.0 : constraints.maxWidth < 700 ? 17.0 : 25.0;
+        final margemVertical = constraints.maxWidth < 700 ? 16.0 : 24.0;
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: Padding(
+              padding: padding ?? EdgeInsets.fromLTRB(margemHorizontal, margemVertical, margemHorizontal, 28),
+              child: child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\aviso_demonstracao.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\aviso_demonstracao.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\aviso_demonstracao.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../constantes/cores.dart';
+
+class AvisoDemonstracao extends StatelessWidget {
+  const AvisoDemonstracao({super.key, this.texto = 'Prévia visual: os dados ainda não vêm do ESP32/Firebase.'});
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(color: const Color(0xFFEAF2F7), borderRadius: BorderRadius.circular(12)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Icon(Icons.info_outline_rounded, color: CoresHortasmart.azul, size: 18),
+        const SizedBox(width: 8),
+        Expanded(child: Text(texto, style: const TextStyle(color: CoresHortasmart.azul, fontSize: 12, height: 1.4))),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cabecalho_aplicativo.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cabecalho_aplicativo.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cabecalho_aplicativo.dart
+==================================================
+import 'package:flutter/material.dart';
+
+/// Cabeçalho compartilhado das quatro áreas principais do HortaSmart.
+class CabecalhoAplicativo extends StatelessWidget {
+  const CabecalhoAplicativo({
+    super.key,
+    required this.indiceSelecionado,
+    required this.aoVoltarPainel,
+    required this.aoAcionar,
+  });
+
+  final int indiceSelecionado;
+  final VoidCallback aoVoltarPainel;
+  final VoidCallback aoAcionar;
+
+  static const _titulos = [
+    'HortaSmart',
+    'Irrigação',
+    'Histórico',
+    'Configurações',
+  ];
+
+  static const _subtitulos = [
+    'Irrigação inteligente',
+    'Controle de irrigação por canteiro',
+    'Leituras e consumo de água',
+    'Canteiros, dispositivos e sensores',
+  ];
+
+  static const _iconesAcao = [
+    Icons.notifications_none_rounded,
+    Icons.tune_rounded,
+    Icons.calendar_month_outlined,
+    Icons.info_outline_rounded,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final indice = indiceSelecionado.clamp(0, _titulos.length - 1).toInt();
+
+    final painel = indice == 0;
+    final largura = MediaQuery.sizeOf(context).width;
+
+    final tablet = largura >= 600 && largura < 1100;
+    final computador = largura >= 1100;
+
+    final tamanhoTitulo = computador
+        ? (painel ? 30.0 : 28.0)
+        : tablet
+            ? (painel ? 28.0 : 26.0)
+            : (painel ? 24.0 : 22.0);
+
+    final tamanhoSubtitulo = computador
+        ? 16.0
+        : tablet
+            ? 15.0
+            : 13.0;
+
+    final tamanhoIcone = computador
+        ? 28.0
+        : tablet
+            ? 27.0
+            : 25.0;
+
+    final tamanhoLogo = computador
+        ? 54.0
+        : tablet
+            ? 50.0
+            : 44.0;
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF087B4B),
+            Color(0xFF05643D),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x17052F1D),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: computador
+            ? 28
+            : tablet
+                ? 24
+                : 16,
+        vertical: computador
+            ? 17
+            : tablet
+                ? 16
+                : 12,
+      ),
+      child: Row(
+        children: [
+          if (painel) ...[
+            Container(
+              width: tamanhoLogo,
+              height: tamanhoLogo,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Icon(
+                Icons.eco_rounded,
+                color: Colors.white,
+                size: tamanhoIcone,
+              ),
+            ),
+            const SizedBox(width: 12),
+          ] else ...[
+            IconButton(
+              onPressed: aoVoltarPainel,
+              tooltip: 'Voltar ao painel',
+              visualDensity: VisualDensity.compact,
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: tamanhoIcone,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  painel ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _titulos[indice],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: tamanhoTitulo,
+                    height: 1.15,
+                    letterSpacing: painel ? -0.5 : 0,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _subtitulos[indice],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: painel ? TextAlign.start : TextAlign.center,
+                  style: TextStyle(
+                    color: const Color(0xFFD6F0E1),
+                    fontSize: tamanhoSubtitulo,
+                    height: 1.2,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 9),
+          IconButton(
+            onPressed: aoAcionar,
+            tooltip: switch (indice) {
+              0 => 'Notificações',
+              1 => 'Abrir configurações',
+              2 => 'Período do histórico',
+              _ => 'Sobre o aplicativo',
+            },
+            visualDensity: VisualDensity.compact,
+            icon: Icon(
+              _iconesAcao[indice],
+              color: Colors.white,
+              size: tamanhoIcone,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cabecalho_pagina.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cabecalho_pagina.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cabecalho_pagina.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../constantes/cores.dart';
+
+class CabecalhoPagina extends StatelessWidget {
+  const CabecalhoPagina({
+    super.key,
+    required this.titulo,
+    required this.subtitulo,
+    this.acao,
+  });
+
+  final String titulo;
+  final String subtitulo;
+  final Widget? acao;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(titulo, style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: CoresHortasmart.texto, fontWeight: FontWeight.w800, letterSpacing: -0.5,
+              )),
+              const SizedBox(height: 5),
+              Text(subtitulo, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: CoresHortasmart.textoSecundario, height: 1.35,
+              )),
+            ],
+          ),
+        ),
+        if (acao != null) ...[const SizedBox(width: 12), acao!],
+      ],
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cartao_metrica.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cartao_metrica.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\cartao_metrica.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../constantes/cores.dart';
+
+class CartaoMetrica extends StatelessWidget {
+  const CartaoMetrica({
+    super.key,
+    required this.rotulo,
+    required this.valor,
+    required this.descricao,
+    required this.icone,
+    this.cor = CoresHortasmart.verde,
+    this.fundoIcone = CoresHortasmart.verdeClaro,
+  });
+
+  final String rotulo;
+  final String valor;
+  final String descricao;
+  final IconData icone;
+  final Color cor;
+  final Color fundoIcone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(width: 38, height: 38, decoration: BoxDecoration(color: fundoIcone, borderRadius: BorderRadius.circular(12)),
+          child: Icon(icone, color: cor, size: 20)),
+        const SizedBox(height: 16),
+        Text(rotulo, style: const TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text(valor, style: const TextStyle(color: CoresHortasmart.texto, fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+        const SizedBox(height: 4),
+        Text(descricao, style: const TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 11, height: 1.3)),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\etiqueta_status.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\etiqueta_status.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\etiqueta_status.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../constantes/cores.dart';
+
+class EtiquetaStatus extends StatelessWidget {
+  const EtiquetaStatus({super.key, required this.texto, required this.cor, required this.fundo, this.icone});
+  final String texto;
+  final Color cor;
+  final Color fundo;
+  final IconData? icone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(color: fundo, borderRadius: BorderRadius.circular(99)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        if (icone != null) ...[Icon(icone, size: 14, color: cor), const SizedBox(width: 5)]
+        else ...[Container(width: 7, height: 7, decoration: BoxDecoration(color: cor, shape: BoxShape.circle)), const SizedBox(width: 6)],
+        Text(texto, style: TextStyle(color: cor, fontSize: 11, fontWeight: FontWeight.w800)),
+      ]),
+    );
+  }
+}
+
+class EtiquetaDemonstracao extends StatelessWidget {
+  const EtiquetaDemonstracao({super.key});
+
+  @override
+  Widget build(BuildContext context) => const EtiquetaStatus(
+    texto: 'DADOS DEMONSTRATIVOS',
+    cor: CoresHortasmart.azul,
+    fundo: Color(0xFFE8F2FA),
+    icone: Icons.science_outlined,
+  );
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\indicador_umidade.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\indicador_umidade.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\indicador_umidade.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../constantes/cores.dart';
+
+class EstadoUmidade {
+  const EstadoUmidade(this.texto, this.cor, this.fundo);
+  final String texto;
+  final Color cor;
+  final Color fundo;
+}
+
+EstadoUmidade classificarUmidade(double umidade) {
+  if (umidade < 30) {
+    return const EstadoUmidade('Crítico', CoresHortasmart.vermelho, CoresHortasmart.vermelhoClaro);
+  }
+  if (umidade < 50) {
+    return const EstadoUmidade('Atenção', CoresHortasmart.amarelo, CoresHortasmart.amareloClaro);
+  }
+  return const EstadoUmidade('Adequada', CoresHortasmart.verde, CoresHortasmart.verdeClaro);
+}
+
+class IndicadorUmidade extends StatelessWidget {
+  const IndicadorUmidade({super.key, required this.umidade, this.mostrarTexto = true, this.tamanho = 10});
+  final double umidade;
+  final bool mostrarTexto;
+  final double tamanho;
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = classificarUmidade(umidade);
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(width: tamanho, height: tamanho, decoration: BoxDecoration(color: estado.cor, shape: BoxShape.circle)),
+      if (mostrarTexto) ...[
+        const SizedBox(width: 7),
+        Text(estado.texto, style: TextStyle(color: estado.cor, fontSize: 12, fontWeight: FontWeight.w700)),
+      ],
+    ]);
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\titulo_secao.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\componentes\titulo_secao.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\componentes\titulo_secao.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../constantes/cores.dart';
+
+class TituloSecao extends StatelessWidget {
+  const TituloSecao({super.key, required this.titulo, this.detalhe});
+  final String titulo;
+  final String? detalhe;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(child: Text(titulo, style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w800, color: CoresHortasmart.texto,
+        ))),
+        if (detalhe != null)
+          Text(detalhe!, style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: CoresHortasmart.textoSecundario,
+          )),
+      ],
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\constantes\cores.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\compartilhado\constantes\cores.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\compartilhado\constantes\cores.dart
+==================================================
+import 'package:flutter/material.dart';
+
+abstract final class CoresHortasmart {
+  static const verde = Color(0xFF087B4B);
+  static const verdeEscuro = Color(0xFF075C39);
+  static const verdeClaro = Color(0xFFE6F4E9);
+  static const fundo = Color(0xFFF4F7F5);
+  static const texto = Color(0xFF172A20);
+  static const textoSecundario = Color(0xFF718078);
+  static const amarelo = Color(0xFFE5A317);
+  static const amareloClaro = Color(0xFFFFF4D9);
+  static const vermelho = Color(0xFFE54855);
+  static const vermelhoClaro = Color(0xFFFFE9E8);
+  static const azul = Color(0xFF2583CA);
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\modelos\canteiro.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\dados\modelos\canteiro.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\modelos\canteiro.dart
+==================================================
+enum ModoIrrigacao { automatico, manual }
+
+class Canteiro {
+  const Canteiro({
+    required this.id,
+    required this.nome,
+    required this.cultura,
+    required this.umidadeAtual,
+    required this.metaUmidade,
+    required this.conectado,
+    required this.irrigando,
+    required this.modo,
+    required this.intervaloHoras,
+    required this.valorSeco,
+    required this.valorMolhado,
+  });
+
+  final String id;
+  final String nome;
+  final String cultura;
+  final double umidadeAtual;
+  final double metaUmidade;
+  final bool conectado;
+  final bool irrigando;
+  final ModoIrrigacao modo;
+  final int intervaloHoras;
+  final int valorSeco;
+  final int valorMolhado;
+
+  Canteiro copiarCom({
+    String? nome,
+    String? cultura,
+    double? umidadeAtual,
+    double? metaUmidade,
+    bool? conectado,
+    bool? irrigando,
+    ModoIrrigacao? modo,
+    int? intervaloHoras,
+    int? valorSeco,
+    int? valorMolhado,
+  }) {
+    return Canteiro(
+      id: id,
+      nome: nome ?? this.nome,
+      cultura: cultura ?? this.cultura,
+      umidadeAtual: umidadeAtual ?? this.umidadeAtual,
+      metaUmidade: metaUmidade ?? this.metaUmidade,
+      conectado: conectado ?? this.conectado,
+      irrigando: irrigando ?? this.irrigando,
+      modo: modo ?? this.modo,
+      intervaloHoras: intervaloHoras ?? this.intervaloHoras,
+      valorSeco: valorSeco ?? this.valorSeco,
+      valorMolhado: valorMolhado ?? this.valorMolhado,
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\modelos\previsao_tempo.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\dados\modelos\previsao_tempo.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\modelos\previsao_tempo.dart
+==================================================
+class PrevisaoTempo {
+  final String cidade;
+  final String pais;
+  final double temperatura;
+  final double umidadeRelativa;
+  final double probabilidadeChuva;
+  final double velocidadeVento;
+  final int codigoClima;
+  final DateTime atualizadoEm;
+
+  const PrevisaoTempo({
+    required this.cidade,
+    required this.pais,
+    required this.temperatura,
+    required this.umidadeRelativa,
+    required this.probabilidadeChuva,
+    required this.velocidadeVento,
+    required this.codigoClima,
+    required this.atualizadoEm,
+  });
+
+  String get condicao {
+    switch (codigoClima) {
+      case 0:
+        return 'Céu limpo';
+      case 1:
+        return 'Predominantemente limpo';
+      case 2:
+        return 'Parcialmente nublado';
+      case 3:
+        return 'Nublado';
+      case 45:
+      case 48:
+        return 'Neblina';
+      case 51:
+      case 53:
+      case 55:
+        return 'Garoa';
+      case 56:
+      case 57:
+        return 'Garoa congelante';
+      case 61:
+      case 63:
+      case 65:
+        return 'Chuva';
+      case 66:
+      case 67:
+        return 'Chuva congelante';
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+        return 'Neve';
+      case 80:
+      case 81:
+      case 82:
+        return 'Pancadas de chuva';
+      case 85:
+      case 86:
+        return 'Pancadas de neve';
+      case 95:
+      case 96:
+      case 99:
+        return 'Tempestade';
+      default:
+        return 'Condição indisponível';
+    }
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\repositorios\repositorio_canteiro.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\dados\repositorios\repositorio_canteiro.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\repositorios\repositorio_canteiro.dart
+==================================================
+import '../modelos/canteiro.dart';
+
+/// Dados locais de demonstração para desenvolver a interface antes da integração.
+class RepositorioCanteiro {
+  static List<Canteiro> criarDadosDemonstracao() => const [
+        Canteiro(
+          id: 'canteiro-01',
+          nome: 'Canteiro 1',
+          cultura: 'Alface',
+          umidadeAtual: 68,
+          metaUmidade: 65,
+          conectado: true,
+          irrigando: false,
+          modo: ModoIrrigacao.automatico,
+          intervaloHoras: 4,
+          valorSeco: 3000,
+          valorMolhado: 1400,
+        ),
+        Canteiro(
+          id: 'canteiro-02',
+          nome: 'Canteiro 2',
+          cultura: 'Tomate',
+          umidadeAtual: 42,
+          metaUmidade: 55,
+          conectado: true,
+          irrigando: false,
+          modo: ModoIrrigacao.automatico,
+          intervaloHoras: 6,
+          valorSeco: 3050,
+          valorMolhado: 1350,
+        ),
+        Canteiro(
+          id: 'canteiro-03',
+          nome: 'Canteiro 3',
+          cultura: 'Cenoura',
+          umidadeAtual: 28,
+          metaUmidade: 50,
+          conectado: true,
+          irrigando: false,
+          modo: ModoIrrigacao.automatico,
+          intervaloHoras: 6,
+          valorSeco: 2980,
+          valorMolhado: 1380,
+        ),
+        Canteiro(
+          id: 'canteiro-04',
+          nome: 'Canteiro 4',
+          cultura: 'Rúcula',
+          umidadeAtual: 76,
+          metaUmidade: 60,
+          conectado: true,
+          irrigando: false,
+          modo: ModoIrrigacao.automatico,
+          intervaloHoras: 4,
+          valorSeco: 3020,
+          valorMolhado: 1420,
+        ),
+      ];
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\servicos\servico_clima.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\dados\servicos\servico_clima.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\servicos\servico_clima.dart
+==================================================
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import '../modelos/previsao_tempo.dart';
+
+class ServicoClima {
+  static const Duration _tempoLimite = Duration(seconds: 15);
+
+  Future<PrevisaoTempo> buscarPorCidade(String nomeCidade) async {
+    final cidade = nomeCidade.trim();
+
+    if (cidade.isEmpty) {
+      throw ArgumentError('Digite o nome de uma cidade.');
+    }
+
+    final uri = Uri.https(
+      'geocoding-api.open-meteo.com',
+      '/v1/search',
+      {
+        'name': cidade,
+        'count': '1',
+        'language': 'pt',
+        'format': 'json',
+      },
+    );
+
+    final resposta = await http.get(uri).timeout(_tempoLimite);
+
+    if (resposta.statusCode != 200) {
+      throw Exception('Não foi possível localizar a cidade.');
+    }
+
+    final dados = jsonDecode(resposta.body) as Map<String, dynamic>;
+    final resultados = dados['results'] as List<dynamic>?;
+
+    if (resultados == null || resultados.isEmpty) {
+      throw Exception(
+        'Cidade não encontrada. Confira o nome e tente novamente.',
+      );
+    }
+
+    final local = resultados.first as Map<String, dynamic>;
+
+    return _buscarPrevisao(
+      latitude: (local['latitude'] as num).toDouble(),
+      longitude: (local['longitude'] as num).toDouble(),
+      cidade: local['name'] as String? ?? cidade,
+      pais: local['country'] as String? ?? '',
+    );
+  }
+
+  Future<PrevisaoTempo> buscarPorCoordenadas({
+    required double latitude,
+    required double longitude,
+  }) async {
+    // A consulta meteorológica não depende de encontrar o nome da cidade.
+    var cidade = 'Minha localização';
+    var pais = '';
+
+    try {
+      final uriLocal = Uri.https(
+        'nominatim.openstreetmap.org',
+        '/reverse',
+        {
+          'lat': latitude.toString(),
+          'lon': longitude.toString(),
+          'format': 'jsonv2',
+          'accept-language': 'pt-BR',
+          'zoom': '10',
+        },
+      );
+
+      final respostaLocal = await http.get(
+        uriLocal,
+        headers: {
+          'User-Agent': 'HortaSmart/1.0 (aplicativo meteorologico)',
+        },
+      ).timeout(_tempoLimite);
+
+      if (respostaLocal.statusCode == 200) {
+        final dadosLocal =
+            jsonDecode(respostaLocal.body) as Map<String, dynamic>;
+
+        final endereco = dadosLocal['address'] as Map<String, dynamic>?;
+
+        if (endereco != null) {
+          cidade = endereco['city'] as String? ??
+              endereco['town'] as String? ??
+              endereco['village'] as String? ??
+              endereco['municipality'] as String? ??
+              endereco['county'] as String? ??
+              cidade;
+
+          pais = endereco['country'] as String? ?? '';
+        }
+      }
+    } catch (_) {
+      // Se o nome da cidade não puder ser identificado,
+      // a consulta do clima ainda poderá continuar.
+    }
+
+    return _buscarPrevisao(
+      latitude: latitude,
+      longitude: longitude,
+      cidade: cidade,
+      pais: pais,
+    );
+  }
+
+  Future<PrevisaoTempo> _buscarPrevisao({
+    required double latitude,
+    required double longitude,
+    required String cidade,
+    required String pais,
+  }) async {
+    final uri = Uri.https(
+      'api.open-meteo.com',
+      '/v1/forecast',
+      {
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+        'current':
+            'temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m',
+        'hourly': 'precipitation_probability',
+        'forecast_days': '1',
+        'timezone': 'auto',
+      },
+    );
+
+    final resposta = await http.get(uri).timeout(_tempoLimite);
+
+    if (resposta.statusCode != 200) {
+      throw Exception('Não foi possível consultar a previsão do tempo.');
+    }
+
+    final dados = jsonDecode(resposta.body) as Map<String, dynamic>;
+    final atual = dados['current'] as Map<String, dynamic>;
+
+    final horario = DateTime.parse(atual['time'] as String);
+
+    final dadosHorarios = dados['hourly'] as Map<String, dynamic>;
+    final horarios = dadosHorarios['time'] as List<dynamic>;
+    final probabilidades =
+        dadosHorarios['precipitation_probability'] as List<dynamic>;
+
+    final horarioAtual = (atual['time'] as String).substring(0, 13);
+
+    var indiceHorario = horarios.indexWhere(
+      (item) => (item as String).startsWith(horarioAtual),
+    );
+
+    double probabilidadeChuva = 0;
+
+    if (indiceHorario >= 0 && indiceHorario < probabilidades.length) {
+      final valor = probabilidades[indiceHorario];
+
+      if (valor != null) {
+        probabilidadeChuva = (valor as num).toDouble();
+      }
+    }
+
+    return PrevisaoTempo(
+      cidade: cidade,
+      pais: pais,
+      temperatura: (atual['temperature_2m'] as num).toDouble(),
+      umidadeRelativa: (atual['relative_humidity_2m'] as num).toDouble(),
+      probabilidadeChuva: probabilidadeChuva,
+      velocidadeVento: (atual['wind_speed_10m'] as num).toDouble(),
+      codigoClima: (atual['weather_code'] as num).toInt(),
+      atualizadoEm: horario,
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\servicos\servico_esp32.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\dados\servicos\servico_esp32.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\servicos\servico_esp32.dart
+==================================================
+/// Ponto de integração lógica com o ESP32.
+///
+/// Na arquitetura prevista, o aplicativo envia configurações à nuvem e o
+/// ESP32 consulta essas configurações. O controle físico deve ser validado
+/// no próprio ESP32; o app não deve depender de uma tela aberta para irrigar.
+class ServicoEsp32 {
+  ServicoEsp32();
+
+  Future<void> solicitarIrrigacao({
+    required String idCanteiro,
+    required bool ligar,
+  }) async {
+    // TODO: enviar comando por Firebase/MQTT/API autenticada.
+    throw UnimplementedError('Integração com ESP32 ainda não implementada.');
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\servicos\servico_firebase.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\dados\servicos\servico_firebase.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\dados\servicos\servico_firebase.dart
+==================================================
+/// Ponto de integração para o Firebase.
+///
+/// Esta classe ainda não inicializa o Firebase nem faz chamadas de rede.
+/// Quando a interface estiver validada, adicionaremos firebase_core,
+/// cloud_firestore e/ou firebase_database conforme a arquitetura escolhida.
+class ServicoFirebase {
+  ServicoFirebase();
+
+  Future<void> salvarMetaUmidade({
+    required String idCanteiro,
+    required double meta,
+  }) async {
+    // TODO: gravar a meta em uma coleção/caminho por canteiro.
+    throw UnimplementedError('Integração Firebase ainda não implementada.');
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\formulario_canteiro.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\formulario_canteiro.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\formulario_canteiro.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../../dados/modelos/canteiro.dart';
+import '../../compartilhado/constantes/cores.dart';
+
+/// Formulário de cadastro exibido em uma janela modal.
+class FormularioCanteiro extends StatefulWidget {
+  const FormularioCanteiro({super.key});
+
+  @override
+  State<FormularioCanteiro> createState() => _FormularioCanteiroState();
+}
+
+class _FormularioCanteiroState extends State<FormularioCanteiro> {
+  final _chaveFormulario = GlobalKey<FormState>();
+  final _controladorNome = TextEditingController();
+  final _controladorCultura = TextEditingController();
+  String _tipoCultura = 'Alface';
+
+  @override
+  void dispose() {
+    _controladorNome.dispose();
+    _controladorCultura.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Novo canteiro', style: TextStyle(fontWeight: FontWeight.w800)),
+      content: SingleChildScrollView(child: Form(key: _chaveFormulario, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextFormField(
+          controller: _controladorNome,
+          decoration: const InputDecoration(labelText: 'Nome do canteiro', hintText: 'Ex.: Canteiro 03'),
+          validator: (valor) => valor == null || valor.trim().isEmpty ? 'Informe um nome.' : null,
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          value: _tipoCultura,
+          decoration: const InputDecoration(labelText: 'Cultura'),
+          items: const ['Alface', 'Tomate', 'Manjericão', 'Couve', 'Outra'].map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+          onChanged: (valor) => setState(() => _tipoCultura = valor ?? 'Alface'),
+        ),
+        if (_tipoCultura == 'Outra') ...[
+          const SizedBox(height: 12),
+          TextFormField(controller: _controladorCultura, decoration: const InputDecoration(labelText: 'Nome da cultura'),
+            validator: (valor) => _tipoCultura == 'Outra' && (valor == null || valor.trim().isEmpty) ? 'Informe a cultura.' : null),
+        ],
+        const SizedBox(height: 10),
+        const Text('O sensor e o ESP32 poderão ser associados ao canteiro na etapa de integração.', style: TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 12, height: 1.4)),
+      ]))),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        FilledButton(onPressed: () {
+          if (!_chaveFormulario.currentState!.validate()) return;
+          final nome = _controladorNome.text.trim();
+          final cultura = _tipoCultura == 'Outra' ? _controladorCultura.text.trim() : _tipoCultura;
+          Navigator.pop(context, Canteiro(
+            id: 'canteiro-${DateTime.now().microsecondsSinceEpoch}',
+            nome: nome,
+            cultura: cultura,
+            umidadeAtual: 0,
+            metaUmidade: 65,
+            conectado: false,
+            irrigando: false,
+            modo: ModoIrrigacao.automatico,
+            intervaloHoras: 4,
+            valorSeco: 3000,
+            valorMolhado: 1400,
+          ));
+        }, child: const Text('Cadastrar')),
+      ],
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\tela_calibracao.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\tela_calibracao.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\tela_calibracao.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../../dados/modelos/canteiro.dart';
+import '../../compartilhado/constantes/cores.dart';
+import '../../compartilhado/componentes/aviso_demonstracao.dart';
+
+class TelaCalibracao extends StatefulWidget {
+  const TelaCalibracao({super.key, required this.canteiro, required this.aoSalvar});
+  final Canteiro canteiro;
+  final ValueChanged<Canteiro> aoSalvar;
+
+  @override
+  State<TelaCalibracao> createState() => _TelaCalibracaoState();
+}
+
+class _TelaCalibracaoState extends State<TelaCalibracao> {
+  late final TextEditingController _controladorSeco;
+  late final TextEditingController _controladorMolhado;
+
+  @override
+  void initState() {
+    super.initState();
+    _controladorSeco = TextEditingController(text: widget.canteiro.valorSeco.toString());
+    _controladorMolhado = TextEditingController(text: widget.canteiro.valorMolhado.toString());
+  }
+
+  @override
+  void dispose() {
+    _controladorSeco.dispose();
+    _controladorMolhado.dispose();
+    super.dispose();
+  }
+
+  void _salvar() {
+    final seco = int.tryParse(_controladorSeco.text.trim());
+    final molhado = int.tryParse(_controladorMolhado.text.trim());
+    if (seco == null || molhado == null || seco == molhado || seco < 0 || seco > 4095 || molhado < 0 || molhado > 4095) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Digite valores diferentes entre 0 e 4095.')));
+      return;
+    }
+    widget.aoSalvar(widget.canteiro.copiarCom(valorSeco: seco, valorMolhado: molhado));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Valores salvos nesta prévia.')));
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Calibração do sensor', style: TextStyle(fontWeight: FontWeight.w800))),
+      body: SafeArea(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 680), child: ListView(padding: const EdgeInsets.all(20), children: [
+        Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)), child: Row(children: [
+          Container(width: 48, height: 48, decoration: BoxDecoration(color: CoresHortasmart.verdeClaro, borderRadius: BorderRadius.circular(15)), child: const Icon(Icons.sensors_rounded, color: CoresHortasmart.verde, size: 25)),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(widget.canteiro.nome, style: const TextStyle(color: CoresHortasmart.texto, fontWeight: FontWeight.w800, fontSize: 16)),
+            Text('Sensor capacitivo · ${widget.canteiro.cultura}', style: const TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 12)),
+          ])),
+        ])),
+        const SizedBox(height: 16),
+        const AvisoDemonstracao(texto: 'Os valores abaixo são exemplos de leitura bruta. Na calibração real, anote a leitura ADC obtida pelo seu próprio sensor.'),
+        const SizedBox(height: 20),
+        const Text('1. Referência de solo seco', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: CoresHortasmart.texto)),
+        const SizedBox(height: 7),
+        const Text('Faça a leitura com o sensor em condição seca, conforme o procedimento definido para o seu protótipo.', style: TextStyle(fontSize: 13, height: 1.4, color: CoresHortasmart.textoSecundario)),
+        const SizedBox(height: 10),
+        TextField(controller: _controladorSeco, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Valor bruto — seco', suffixText: 'ADC', prefixIcon: Icon(Icons.wb_sunny_outlined))),
+        const SizedBox(height: 22),
+        const Text('2. Referência de solo úmido', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: CoresHortasmart.texto)),
+        const SizedBox(height: 7),
+        const Text('Faça a leitura em uma referência úmida controlada. Evite mergulhar partes eletrônicas que não sejam à prova d’água.', style: TextStyle(fontSize: 13, height: 1.4, color: CoresHortasmart.textoSecundario)),
+        const SizedBox(height: 10),
+        TextField(controller: _controladorMolhado, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Valor bruto — úmido', suffixText: 'ADC', prefixIcon: Icon(Icons.water_drop_outlined))),
+        const SizedBox(height: 18),
+        Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: const Color(0xFFFFF2D5), borderRadius: BorderRadius.circular(14)), child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.lightbulb_outline, color: CoresHortasmart.amarelo), SizedBox(width: 9),
+          Expanded(child: Text('Alguns sensores apresentam leitura maior quando secos e menor quando molhados. O software deve normalizar os dois extremos para uma porcentagem de 0% a 100%.', style: TextStyle(color: CoresHortasmart.texto, fontSize: 12, height: 1.4))),
+        ])),
+        const SizedBox(height: 22),
+        FilledButton.icon(onPressed: _salvar, icon: const Icon(Icons.save_outlined), label: const Text('Salvar calibração')),
+      ])))),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\tela_configuracoes.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\tela_configuracoes.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\configuracoes\tela_configuracoes.dart
+==================================================
+import 'package:flutter/material.dart';
+
+import '../../compartilhado/componentes/area_pagina.dart';
+import '../../compartilhado/componentes/aviso_demonstracao.dart';
+import '../../compartilhado/componentes/indicador_umidade.dart';
+import '../../compartilhado/componentes/titulo_secao.dart';
+import '../../compartilhado/constantes/cores.dart';
+import '../../dados/modelos/canteiro.dart';
+import 'formulario_canteiro.dart';
+import 'tela_calibracao.dart';
+
+class TelaConfiguracoes extends StatefulWidget {
+  const TelaConfiguracoes({
+    super.key,
+    required this.canteiros,
+    required this.aoAdicionarCanteiro,
+    required this.aoAtualizarCanteiro,
+    required this.aoRemoverCanteiro,
+  });
+
+  final List<Canteiro> canteiros;
+  final ValueChanged<Canteiro> aoAdicionarCanteiro;
+  final ValueChanged<Canteiro> aoAtualizarCanteiro;
+  final ValueChanged<String> aoRemoverCanteiro;
+
+  @override
+  State<TelaConfiguracoes> createState() => _TelaConfiguracoesState();
+}
+
+class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
+  final GlobalKey _chaveCanteiros = GlobalKey();
+
+  Future<void> _novoCanteiro(BuildContext context) async {
+    final novo = await showDialog<Canteiro>(
+        context: context, builder: (_) => const FormularioCanteiro());
+    if (novo == null || !context.mounted) return;
+    widget.aoAdicionarCanteiro(novo);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${novo.nome} foi adicionado à prévia.'),
+        behavior: SnackBarBehavior.floating));
+  }
+
+  Future<void> _calibrar(BuildContext context, Canteiro canteiro) async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => TelaCalibracao(
+          canteiro: canteiro, aoSalvar: widget.aoAtualizarCanteiro),
+    ));
+  }
+
+  Future<void> _selecionarCanteiroParaCalibrar(BuildContext context) async {
+    if (widget.canteiros.isEmpty) {
+      _mensagem(context, 'Cadastre um canteiro antes de calibrar um sensor.');
+      return;
+    }
+    final canteiro = await showModalBottomSheet<Canteiro>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(sheetContext).size.height * 0.62),
+            child: SingleChildScrollView(
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Text('Qual sensor deseja calibrar?',
+                            style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: CoresHortasmart.texto))),
+                    ...widget.canteiros.map((item) => ListTile(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(13)),
+                          leading: const CircleAvatar(
+                              backgroundColor: CoresHortasmart.verdeClaro,
+                              child: Icon(Icons.sensors_rounded,
+                                  color: CoresHortasmart.verde)),
+                          title: Text(item.cultura,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800)),
+                          subtitle: Text(
+                              '${item.nome} · Sensor ${item.id.split('-').last.toUpperCase()}'),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.pop(sheetContext, item),
+                        )),
+                  ]),
+            ),
+          ),
+        ),
+      ),
+    );
+    if (canteiro != null && context.mounted) await _calibrar(context, canteiro);
+  }
+
+  Future<void> _mostrarDispositivos(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.memory_rounded,
+            color: CoresHortasmart.verde, size: 30),
+        title: const Text('Dispositivos ESP32'),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+              maxWidth: 390,
+              maxHeight: MediaQuery.of(dialogContext).size.height * 0.62),
+          child: SingleChildScrollView(
+            child: widget.canteiros.isEmpty
+                ? const Text('Nenhum dispositivo associado a um canteiro.')
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: widget.canteiros
+                        .map((canteiro) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                  canteiro.conectado
+                                      ? Icons.wifi_rounded
+                                      : Icons.wifi_off_rounded,
+                                  color: canteiro.conectado
+                                      ? CoresHortasmart.verde
+                                      : CoresHortasmart.vermelho),
+                              title: Text(
+                                  'ESP32 · ${canteiro.id.split('-').last.toUpperCase()}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13)),
+                              subtitle: Text(
+                                  '${canteiro.nome} · ${canteiro.cultura}',
+                                  style: const TextStyle(fontSize: 11)),
+                              trailing: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                      color: canteiro.conectado
+                                          ? CoresHortasmart.verde
+                                          : CoresHortasmart.vermelho,
+                                      shape: BoxShape.circle)),
+                            ))
+                        .toList()),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Fechar'))
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editarMetas(BuildContext contextoPai,
+      {String? idInicial}) async {
+    if (widget.canteiros.isEmpty) {
+      _mensagem(contextoPai, 'Cadastre um canteiro antes de definir uma meta.');
+      return;
+    }
+    var inicial = widget.canteiros.first;
+    for (final item in widget.canteiros) {
+      if (item.id == idInicial) {
+        inicial = item;
+        break;
+      }
+    }
+    var idSelecionado = inicial.id;
+    var meta = inicial.metaUmidade;
+    await showDialog<void>(
+      context: contextoPai,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (contextInterno, setDialogState) {
+          Canteiro selecionado = widget.canteiros.first;
+          for (final item in widget.canteiros) {
+            if (item.id == idSelecionado) {
+              selecionado = item;
+              break;
+            }
+          }
+          return AlertDialog(
+            title: const Text('Meta de umidade'),
+            content: SizedBox(
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('A meta é individual para cada plantação.',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: CoresHortasmart.textoSecundario)),
+                    const SizedBox(height: 15),
+                    DropdownButtonFormField<String>(
+                      value: idSelecionado,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Canteiro'),
+                      items: widget.canteiros
+                          .map((item) => DropdownMenuItem(
+                              value: item.id,
+                              child: Text('${item.cultura} · ${item.nome}',
+                                  overflow: TextOverflow.ellipsis)))
+                          .toList(),
+                      onChanged: (id) {
+                        if (id == null) return;
+                        Canteiro? item;
+                        for (final canteiro in widget.canteiros) {
+                          if (canteiro.id == id) {
+                            item = canteiro;
+                            break;
+                          }
+                        }
+                        setDialogState(() {
+                          idSelecionado = id;
+                          meta = item?.metaUmidade ?? 65;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      const Expanded(
+                          child: Text('Meta desejada',
+                              style: TextStyle(fontWeight: FontWeight.w800))),
+                      Text('${meta.round()}%',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              color: CoresHortasmart.verde))
+                    ]),
+                    Slider(
+                        value: meta.clamp(0, 100).toDouble(),
+                        min: 0,
+                        max: 100,
+                        divisions: 20,
+                        label: '${meta.round()}%',
+                        onChanged: (valor) =>
+                            setDialogState(() => meta = valor)),
+                  ]),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar')),
+              FilledButton(
+                  onPressed: () {
+                    widget.aoAtualizarCanteiro(
+                        selecionado.copiarCom(metaUmidade: meta));
+                    Navigator.pop(dialogContext);
+                    _mensagem(contextoPai, 'Meta salva nesta prévia.');
+                  },
+                  child: const Text('Salvar meta')),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _editarProgramacao(BuildContext contextoPai) async {
+    if (widget.canteiros.isEmpty) {
+      _mensagem(contextoPai,
+          'Cadastre um canteiro antes de configurar a programação.');
+      return;
+    }
+    var idSelecionado = widget.canteiros.first.id;
+    var intervalo = widget.canteiros.first.intervaloHoras;
+    await showDialog<void>(
+      context: contextoPai,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (contextInterno, setDialogState) {
+          Canteiro selecionado = widget.canteiros.first;
+          for (final item in widget.canteiros) {
+            if (item.id == idSelecionado) {
+              selecionado = item;
+              break;
+            }
+          }
+          return AlertDialog(
+            title: const Text('Horários e programação'),
+            content: SizedBox(
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                        'Defina com que intervalo o ESP32 deve reavaliar a irrigação automática.',
+                        style: TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            color: CoresHortasmart.textoSecundario)),
+                    const SizedBox(height: 15),
+                    DropdownButtonFormField<String>(
+                      value: idSelecionado,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Canteiro'),
+                      items: widget.canteiros
+                          .map((item) => DropdownMenuItem(
+                              value: item.id,
+                              child: Text('${item.cultura} · ${item.nome}',
+                                  overflow: TextOverflow.ellipsis)))
+                          .toList(),
+                      onChanged: (id) {
+                        if (id == null) return;
+                        Canteiro? item;
+                        for (final canteiro in widget.canteiros) {
+                          if (canteiro.id == id) {
+                            item = canteiro;
+                            break;
+                          }
+                        }
+                        setDialogState(() {
+                          idSelecionado = id;
+                          intervalo = item?.intervaloHoras ?? 4;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      value: intervalo,
+                      decoration:
+                          const InputDecoration(labelText: 'Verificar a cada'),
+                      items: const [1, 2, 4, 6, 8, 12, 24]
+                          .map((h) => DropdownMenuItem(
+                              value: h,
+                              child: Text('$h ${h == 1 ? 'hora' : 'horas'}')))
+                          .toList(),
+                      onChanged: (valor) {
+                        if (valor != null)
+                          setDialogState(() => intervalo = valor);
+                      },
+                    ),
+                  ]),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar')),
+              FilledButton(
+                  onPressed: () {
+                    widget.aoAtualizarCanteiro(
+                        selecionado.copiarCom(intervaloHoras: intervalo));
+                    Navigator.pop(dialogContext);
+                    _mensagem(contextoPai, 'Programação salva nesta prévia.');
+                  },
+                  child: const Text('Salvar')),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _confirmarRemocao(
+      BuildContext context, Canteiro canteiro) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remover canteiro?'),
+        content: Text('Deseja remover ${canteiro.nome} desta prévia?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Remover')),
+        ],
+      ),
+    );
+    if (confirmar == true) widget.aoRemoverCanteiro(canteiro.id);
+  }
+
+  void _rolarParaCanteiros() {
+    final context = _chaveCanteiros.currentContext;
+    if (context != null)
+      Scrollable.ensureVisible(context,
+          duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
+  }
+
+  void _mensagem(BuildContext context, String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensagem), behavior: SnackBarBehavior.floating));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conectados =
+        widget.canteiros.where((canteiro) => canteiro.conectado).length;
+    final atalhos = <_AtalhoConfiguracao>[
+      _AtalhoConfiguracao(Icons.grass_rounded, 'Gerenciar canteiros',
+          'Cadastrar, editar e remover canteiros', _rolarParaCanteiros),
+      _AtalhoConfiguracao(
+          Icons.memory_rounded,
+          'Dispositivos ESP32',
+          'Gerenciar e associar dispositivos',
+          () => _mostrarDispositivos(context)),
+      _AtalhoConfiguracao(
+          Icons.sensors_rounded,
+          'Calibração do sensor',
+          'Configurar referências de leitura',
+          () => _selecionarCanteiroParaCalibrar(context)),
+      _AtalhoConfiguracao(Icons.track_changes_rounded, 'Meta de umidade',
+          'Definir uma meta por plantação', () => _editarMetas(context)),
+      _AtalhoConfiguracao(
+          Icons.schedule_rounded,
+          'Horários e programação',
+          'Configurar o intervalo automático',
+          () => _editarProgramacao(context)),
+    ];
+
+    return AreaPagina(
+      child: SingleChildScrollView(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const AvisoDemonstracao(
+              texto:
+                  'Alterações ficam salvas somente enquanto esta prévia está aberta. O Firebase será integrado depois.'),
+          const SizedBox(height: 13),
+          Container(
+            padding: const EdgeInsets.all(17),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF087B4B), Color(0xFF075C39)]),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(children: [
+              Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(15)),
+                  child: const Icon(Icons.memory_rounded,
+                      color: Colors.white, size: 26)),
+              const SizedBox(width: 13),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    const Text('Central de dispositivos',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15)),
+                    const SizedBox(height: 4),
+                    Text(
+                        '$conectados conectados · ${widget.canteiros.length} canteiros cadastrados',
+                        style: const TextStyle(
+                            color: Color(0xFFD6F0E1), fontSize: 11)),
+                  ])),
+              const Icon(Icons.wifi_rounded, color: Colors.white, size: 26),
+            ]),
+          ),
+          const SizedBox(height: 22),
+          const TituloSecao(titulo: 'Configurações do sistema'),
+          const SizedBox(height: 11),
+          LayoutBuilder(builder: (context, constraints) {
+            final colunas = constraints.maxWidth >= 760 ? 2 : 1;
+            final largura =
+                (constraints.maxWidth - (colunas - 1) * 10) / colunas;
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: atalhos
+                  .map((atalho) => SizedBox(
+                      width: largura, child: _CartaoAtalho(atalho: atalho)))
+                  .toList(),
+            );
+          }),
+          const SizedBox(height: 23),
+          Row(
+            key: _chaveCanteiros,
+            children: [
+              const Expanded(
+                  child: TituloSecao(titulo: 'Canteiros cadastrados')),
+              FilledButton.icon(
+                  onPressed: () => _novoCanteiro(context),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('Novo canteiro')),
+            ],
+          ),
+          const SizedBox(height: 11),
+          if (widget.canteiros.isEmpty)
+            Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18)),
+                child: const Text(
+                    'Nenhum canteiro cadastrado. Use “Novo canteiro” para começar.'))
+          else
+            ...widget.canteiros.map((canteiro) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _CartaoCanteiroConfiguracao(
+                    canteiro: canteiro,
+                    aoCalibrar: () => _calibrar(context, canteiro),
+                    aoRemover: () => _confirmarRemocao(context, canteiro),
+                    aoEditarMeta: () =>
+                        _editarMetas(context, idInicial: canteiro.id),
+                  ),
+                )),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(color: const Color(0xFFE6ECE7))),
+            child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lightbulb_outline_rounded,
+                      color: CoresHortasmart.verde, size: 21),
+                  SizedBox(width: 10),
+                  Expanded(
+                      child: Text(
+                          'Cada sensor deve ser calibrado individualmente. Registre as leituras brutas de referência seca e úmida do próprio sensor, pois os valores podem variar entre módulos.',
+                          style: TextStyle(
+                              fontSize: 11,
+                              height: 1.45,
+                              color: CoresHortasmart.textoSecundario))),
+                ]),
+          ),
+          const SizedBox(height: 24),
+        ]),
+      ),
+    );
+  }
+}
+
+class _AtalhoConfiguracao {
+  const _AtalhoConfiguracao(
+      this.icone, this.titulo, this.subtitulo, this.aoTocar);
+  final IconData icone;
+  final String titulo;
+  final String subtitulo;
+  final VoidCallback aoTocar;
+}
+
+class _CartaoAtalho extends StatelessWidget {
+  const _CartaoAtalho({required this.atalho});
+  final _AtalhoConfiguracao atalho;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(17),
+      child: InkWell(
+        onTap: atalho.aoTocar,
+        borderRadius: BorderRadius.circular(17),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: const Color(0xFFE5ECE6))),
+          child: Row(children: [
+            Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                    color: CoresHortasmart.verdeClaro,
+                    borderRadius: BorderRadius.circular(13)),
+                child:
+                    Icon(atalho.icone, color: CoresHortasmart.verde, size: 23)),
+            const SizedBox(width: 11),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(atalho.titulo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: CoresHortasmart.texto)),
+                  const SizedBox(height: 4),
+                  Text(atalho.subtitulo,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 10,
+                          height: 1.3,
+                          color: CoresHortasmart.textoSecundario)),
+                ])),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right_rounded,
+                color: CoresHortasmart.textoSecundario, size: 20),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _CartaoCanteiroConfiguracao extends StatelessWidget {
+  const _CartaoCanteiroConfiguracao(
+      {required this.canteiro,
+      required this.aoCalibrar,
+      required this.aoRemover,
+      required this.aoEditarMeta});
+  final Canteiro canteiro;
+  final VoidCallback aoCalibrar;
+  final VoidCallback aoRemover;
+  final VoidCallback aoEditarMeta;
+
+  String get _emoji {
+    switch (canteiro.cultura.toLowerCase()) {
+      case 'alface':
+        return '🥬';
+      case 'tomate':
+        return '🍅';
+      case 'cenoura':
+        return '🥕';
+      case 'rúcula':
+      case 'rucula':
+        return '🌿';
+      default:
+        return '🌱';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = classificarUmidade(canteiro.umidadeAtual);
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFE5ECE6))),
+      child: Column(children: [
+        Row(children: [
+          Container(
+              width: 47,
+              height: 47,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  color: CoresHortasmart.verdeClaro,
+                  borderRadius: BorderRadius.circular(14)),
+              child: Text(_emoji, style: const TextStyle(fontSize: 25))),
+          const SizedBox(width: 11),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(canteiro.cultura,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: CoresHortasmart.texto)),
+                const SizedBox(height: 3),
+                Text(
+                    '${canteiro.nome} · Sensor ${canteiro.id.split('-').last.toUpperCase()}',
+                    style: const TextStyle(
+                        fontSize: 10, color: CoresHortasmart.textoSecundario)),
+                const SizedBox(height: 4),
+                Text('Meta: ${canteiro.metaUmidade.round()}%',
+                    style: const TextStyle(
+                        fontSize: 10, color: CoresHortasmart.textoSecundario)),
+              ])),
+          Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                  color: canteiro.conectado
+                      ? estado.cor
+                      : CoresHortasmart.vermelho,
+                  shape: BoxShape.circle)),
+        ]),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(
+              child: OutlinedButton.icon(
+                  onPressed: aoCalibrar,
+                  icon: const Icon(Icons.tune_rounded, size: 17),
+                  label: const Text('Calibrar'))),
+          const SizedBox(width: 8),
+          Expanded(
+              child: OutlinedButton.icon(
+                  onPressed: aoEditarMeta,
+                  icon: const Icon(Icons.track_changes_rounded, size: 17),
+                  label: const Text('Meta'))),
+          const SizedBox(width: 4),
+          IconButton(
+              onPressed: aoRemover,
+              tooltip: 'Remover canteiro',
+              style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFEFEE),
+                  foregroundColor: CoresHortasmart.vermelho),
+              icon: const Icon(Icons.delete_outline_rounded)),
+        ]),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\historico\cartao_consumo_agua.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\historico\cartao_consumo_agua.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\historico\cartao_consumo_agua.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../../compartilhado/constantes/cores.dart';
+
+class CartaoConsumoAgua extends StatelessWidget {
+  const CartaoConsumoAgua({super.key, required this.litrosEstimados, required this.ciclos});
+  final int litrosEstimados;
+  final int ciclos;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(width: 40, height: 40, decoration: BoxDecoration(color: const Color(0xFFE8F2FA), borderRadius: BorderRadius.circular(13)),
+          child: const Icon(Icons.water_drop_rounded, color: CoresHortasmart.azul)),
+        const SizedBox(height: 14),
+        const Text('Água estimada', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: CoresHortasmart.textoSecundario)),
+        const SizedBox(height: 3),
+        Text('$litrosEstimados L', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900, letterSpacing: -0.8, color: CoresHortasmart.texto)),
+        const SizedBox(height: 4),
+        const Text('Estimativa ilustrativa', style: TextStyle(fontSize: 11, color: CoresHortasmart.textoSecundario)),
+        const SizedBox(height: 14),
+        const Divider(height: 1, color: Color(0xFFE8EDE6)),
+        const SizedBox(height: 11),
+        Row(children: [const Icon(Icons.autorenew_rounded, size: 15, color: CoresHortasmart.textoSecundario), const SizedBox(width: 6), Text('$ciclos ciclos de irrigação', style: const TextStyle(fontSize: 11, color: CoresHortasmart.textoSecundario))]),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\historico\grafico_umidade.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\historico\grafico_umidade.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\historico\grafico_umidade.dart
+==================================================
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+
+import '../../compartilhado/constantes/cores.dart';
+
+class GraficoUmidade extends StatelessWidget {
+  const GraficoUmidade({super.key, required this.periodoDias});
+  final int periodoDias;
+
+  static const _cores = [
+    CoresHortasmart.verde,
+    Color(0xFFF2A51A),
+    Color(0xFFEF4E5B),
+    Color(0xFF3989D8),
+  ];
+  static const _nomes = ['Alface', 'Tomate', 'Cenoura', 'Rúcula'];
+
+  List<List<FlSpot>> get _series {
+    if (periodoDias == 1) {
+      return const [
+        [FlSpot(0, 65), FlSpot(2, 58), FlSpot(4, 61), FlSpot(6, 63), FlSpot(8, 68), FlSpot(10, 72), FlSpot(12, 69), FlSpot(14, 64), FlSpot(16, 62), FlSpot(18, 67), FlSpot(20, 70), FlSpot(22, 68), FlSpot(24, 72)],
+        [FlSpot(0, 38), FlSpot(2, 42), FlSpot(4, 39), FlSpot(6, 44), FlSpot(8, 47), FlSpot(10, 52), FlSpot(12, 49), FlSpot(14, 43), FlSpot(16, 45), FlSpot(18, 46), FlSpot(20, 47), FlSpot(22, 45), FlSpot(24, 50)],
+        [FlSpot(0, 20), FlSpot(2, 22), FlSpot(4, 18), FlSpot(6, 25), FlSpot(8, 31), FlSpot(10, 34), FlSpot(12, 28), FlSpot(14, 26), FlSpot(16, 23), FlSpot(18, 28), FlSpot(20, 25), FlSpot(22, 23), FlSpot(24, 20)],
+        [FlSpot(0, 35), FlSpot(2, 30), FlSpot(4, 28), FlSpot(6, 31), FlSpot(8, 37), FlSpot(10, 40), FlSpot(12, 37), FlSpot(14, 34), FlSpot(16, 38), FlSpot(18, 36), FlSpot(20, 39), FlSpot(22, 37), FlSpot(24, 34)],
+      ];
+    }
+    return const [
+      [FlSpot(0, 63), FlSpot(1, 60), FlSpot(2, 66), FlSpot(3, 70), FlSpot(4, 67), FlSpot(5, 64), FlSpot(6, 72)],
+      [FlSpot(0, 42), FlSpot(1, 44), FlSpot(2, 39), FlSpot(3, 48), FlSpot(4, 51), FlSpot(5, 46), FlSpot(6, 50)],
+      [FlSpot(0, 24), FlSpot(1, 20), FlSpot(2, 29), FlSpot(3, 31), FlSpot(4, 26), FlSpot(5, 23), FlSpot(6, 28)],
+      [FlSpot(0, 36), FlSpot(1, 31), FlSpot(2, 35), FlSpot(3, 39), FlSpot(4, 41), FlSpot(5, 37), FlSpot(6, 34)],
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maxX = periodoDias == 1 ? 24.0 : 6.0;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(13, 17, 16, 13),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE6ECE7))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 3),
+          child: Row(children: [
+            Icon(Icons.show_chart_rounded, color: CoresHortasmart.verde, size: 20),
+            SizedBox(width: 7),
+            Text('Umidade do solo', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: CoresHortasmart.texto)),
+          ]),
+        ),
+        const SizedBox(height: 6),
+        const Padding(padding: EdgeInsets.only(left: 3), child: Text('Variação por canteiro · dados ilustrativos', style: TextStyle(fontSize: 11, color: CoresHortasmart.textoSecundario))),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 205,
+          child: LineChart(
+            LineChartData(
+              minX: 0,
+              maxX: maxX,
+              minY: 0,
+              maxY: 100,
+              clipData: const FlClipData.all(),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: true,
+                horizontalInterval: 25,
+                verticalInterval: periodoDias == 1 ? 4 : 1,
+                getDrawingHorizontalLine: (_) => const FlLine(color: Color(0xFFE9EEE9), strokeWidth: 1),
+                getDrawingVerticalLine: (_) => const FlLine(color: Color(0xFFF0F3F0), strokeWidth: 1),
+              ),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 31,
+                  interval: 25,
+                  getTitlesWidget: (valor, meta) => Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Text('${valor.toInt()}', style: const TextStyle(fontSize: 10, color: CoresHortasmart.textoSecundario)),
+                  ),
+                )),
+                bottomTitles: AxisTitles(sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 25,
+                  interval: periodoDias == 1 ? 4 : 1,
+                  getTitlesWidget: (valor, meta) {
+                    final rotulo = periodoDias == 1
+                        ? '${valor.toInt().toString().padLeft(2, '0')}:00'
+                        : const ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][valor.toInt().clamp(0, 6).toInt()];
+                    return Padding(padding: const EdgeInsets.only(top: 7), child: Text(rotulo, style: const TextStyle(fontSize: 9, color: CoresHortasmart.textoSecundario)));
+                  },
+                )),
+              ),
+              lineTouchData: LineTouchData(
+                handleBuiltInTouches: true,
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipItems: (spots) => spots.map((spot) => LineTooltipItem(
+                    '${spot.y.toStringAsFixed(0)}%',
+                    const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 11),
+                  )).toList(),
+                ),
+              ),
+              lineBarsData: List.generate(_series.length, (indice) => LineChartBarData(
+                spots: _series[indice],
+                isCurved: true,
+                curveSmoothness: 0.24,
+                color: _cores[indice],
+                barWidth: 2.5,
+                isStrokeCapRound: true,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(show: false),
+              )),
+            ),
+          ),
+        ),
+        const SizedBox(height: 13),
+        Wrap(
+          spacing: 16,
+          runSpacing: 9,
+          children: List.generate(_nomes.length, (indice) => Row(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: _cores[indice], shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text(_nomes[indice], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: CoresHortasmart.textoSecundario)),
+          ])),
+        ),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\historico\tela_historico.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\historico\tela_historico.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\historico\tela_historico.dart
+==================================================
+import 'package:flutter/material.dart';
+
+import '../../compartilhado/componentes/area_pagina.dart';
+import '../../compartilhado/componentes/aviso_demonstracao.dart';
+import '../../compartilhado/componentes/etiqueta_status.dart';
+import '../../compartilhado/componentes/indicador_umidade.dart';
+import '../../compartilhado/componentes/titulo_secao.dart';
+import '../../compartilhado/constantes/cores.dart';
+import '../../dados/modelos/canteiro.dart';
+import 'grafico_umidade.dart';
+
+class TelaHistorico extends StatefulWidget {
+  const TelaHistorico({super.key, required this.canteiros});
+  final List<Canteiro> canteiros;
+
+  @override
+  State<TelaHistorico> createState() => _TelaHistoricoState();
+}
+
+class _TelaHistoricoState extends State<TelaHistorico> {
+  int _periodoDias = 1;
+  String _tipoGrafico = 'Umidade';
+
+  @override
+  Widget build(BuildContext context) {
+    final acionamentos = _periodoDias == 1 ? 6 : 31;
+    final litros = _periodoDias == 1 ? 48 : 263;
+
+    return AreaPagina(
+      child: SingleChildScrollView(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const AvisoDemonstracao(texto: 'Histórico e consumo são exemplos visuais; os registros reais virão do Firebase após a integração.'),
+          const SizedBox(height: 16),
+          Row(children: [
+            Expanded(child: Text('Resumo do período', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: CoresHortasmart.texto))),
+            SegmentedButton<int>(
+              segments: const [ButtonSegment(value: 1, label: Text('24 h')), ButtonSegment(value: 7, label: Text('7 dias'))],
+              selected: {_periodoDias},
+              showSelectedIcon: false,
+              onSelectionChanged: (valores) => setState(() => _periodoDias = valores.first),
+              style: const ButtonStyle(visualDensity: VisualDensity.compact, textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          LayoutBuilder(builder: (context, constraints) {
+            final cardWidth = (constraints.maxWidth - 12) / 2;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                SizedBox(width: cardWidth, child: _CartaoResumo(rotulo: 'Água consumida', valor: '$litros L', detalhe: 'Estimativa do período', icone: Icons.water_drop_rounded, cor: CoresHortasmart.azul, fundo: const Color(0xFFE8F4FD))),
+                SizedBox(width: cardWidth, child: _CartaoResumo(rotulo: 'Acionamentos da bomba', valor: '$acionamentos vezes', detalhe: _periodoDias == 1 ? 'Nas últimas 24 horas' : 'Nos últimos 7 dias', icone: Icons.water_drop_rounded, cor: CoresHortasmart.verdeEscuro, fundo: CoresHortasmart.verdeClaro)),
+              ],
+            );
+          }),
+          const SizedBox(height: 22),
+          const TituloSecao(titulo: 'Histórico por indicador', detalhe: 'Dados demonstrativos'),
+          const SizedBox(height: 11),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'Umidade', label: Text('Umidade do solo'), icon: Icon(Icons.opacity_rounded)),
+                ButtonSegment(value: 'Bomba', label: Text('Bomba'), icon: Icon(Icons.water_drop_outlined)),
+                ButtonSegment(value: 'Água', label: Text('Consumo de água'), icon: Icon(Icons.water_drop_outlined)),
+              ],
+              selected: {_tipoGrafico},
+              showSelectedIcon: false,
+              onSelectionChanged: (valores) => setState(() => _tipoGrafico = valores.first),
+              style: const ButtonStyle(visualDensity: VisualDensity.compact, textStyle: WidgetStatePropertyAll(TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (_tipoGrafico == 'Umidade')
+            GraficoUmidade(periodoDias: _periodoDias)
+          else
+            _GraficoBarras(periodoDias: _periodoDias, mostrarAgua: _tipoGrafico == 'Água'),
+          const SizedBox(height: 20),
+          const TituloSecao(titulo: 'Resumo por canteiro'),
+          const SizedBox(height: 10),
+          if (widget.canteiros.isEmpty)
+            const _CartaoVazio()
+          else
+            ...widget.canteiros.map((canteiro) => Padding(
+              padding: const EdgeInsets.only(bottom: 9),
+              child: _LinhaCanteiro(canteiro: canteiro, litros: _litrosPorCanteiro(canteiro)),
+            )),
+          const SizedBox(height: 11),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: const Color(0xFFF0F6F1), borderRadius: BorderRadius.circular(17)),
+            child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.info_outline_rounded, color: CoresHortasmart.verde, size: 19),
+              SizedBox(width: 9),
+              Expanded(child: Text('A estimativa de litros usa a vazão da bomba multiplicada pelo tempo de funcionamento. Para melhorar a precisão, podemos medir a vazão ou instalar um sensor de fluxo.', style: TextStyle(fontSize: 11, color: CoresHortasmart.textoSecundario, height: 1.45))),
+            ]),
+          ),
+          const SizedBox(height: 24),
+        ]),
+      ),
+    );
+  }
+
+  int _litrosPorCanteiro(Canteiro canteiro) {
+    switch (canteiro.cultura.toLowerCase()) {
+      case 'alface': return _periodoDias == 1 ? 8 : 52;
+      case 'tomate': return _periodoDias == 1 ? 14 : 78;
+      case 'cenoura': return _periodoDias == 1 ? 12 : 64;
+      default: return _periodoDias == 1 ? 14 : 69;
+    }
+  }
+}
+
+class _CartaoResumo extends StatelessWidget {
+  const _CartaoResumo({required this.rotulo, required this.valor, required this.detalhe, required this.icone, required this.cor, required this.fundo});
+  final String rotulo;
+  final String valor;
+  final String detalhe;
+  final IconData icone;
+  final Color cor;
+  final Color fundo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(19), border: Border.all(color: const Color(0xFFE6ECE7))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 37, height: 37, decoration: BoxDecoration(color: fundo, borderRadius: BorderRadius.circular(12)), child: Icon(icone, color: cor, size: 21)),
+          const Spacer(),
+          const Icon(Icons.more_horiz_rounded, color: Color(0xFF9AA79D), size: 20),
+        ]),
+        const SizedBox(height: 12),
+        Text(rotulo, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, height: 1.25, fontWeight: FontWeight.w700, color: CoresHortasmart.textoSecundario)),
+        const SizedBox(height: 4),
+        FittedBox(alignment: Alignment.centerLeft, fit: BoxFit.scaleDown, child: Text(valor, style: TextStyle(fontSize: 23, height: 1.1, fontWeight: FontWeight.w900, letterSpacing: -0.6, color: cor))),
+        const SizedBox(height: 4),
+        Text(detalhe, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: CoresHortasmart.textoSecundario)),
+      ]),
+    );
+  }
+}
+
+class _GraficoBarras extends StatelessWidget {
+  const _GraficoBarras({required this.periodoDias, required this.mostrarAgua});
+  final int periodoDias;
+  final bool mostrarAgua;
+
+  @override
+  Widget build(BuildContext context) {
+    final valores = mostrarAgua
+        ? (periodoDias == 1 ? [3, 7, 4, 9, 6, 11, 8] : [32, 41, 38, 46, 35, 52, 48])
+        : (periodoDias == 1 ? [0, 1, 0, 2, 1, 1, 1] : [3, 5, 4, 6, 3, 5, 5]);
+    final rotulos = periodoDias == 1 ? const ['00h', '04h', '08h', '12h', '16h', '20h', '24h'] : const ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    final maximo = valores.reduce((a, b) => a > b ? a : b).toDouble();
+    final cor = mostrarAgua ? CoresHortasmart.azul : CoresHortasmart.verde;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(15, 17, 15, 14),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFE6ECE7))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(mostrarAgua ? 'Consumo de água por intervalo' : 'Acionamentos da bomba por intervalo', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: CoresHortasmart.texto)),
+        const SizedBox(height: 4),
+        Text(mostrarAgua ? 'Litros estimados · exemplo' : 'Quantidade de acionamentos · exemplo', style: const TextStyle(fontSize: 11, color: CoresHortasmart.textoSecundario)),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 190,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: List.generate(valores.length, (indice) {
+              final altura = (valores[indice] / (maximo == 0 ? 1 : maximo)) * 118;
+              return Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text('${valores[indice]}', style: const TextStyle(fontSize: 10, color: CoresHortasmart.textoSecundario, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          width: 19,
+                          height: altura.clamp(4, 118).toDouble(),
+                          decoration: BoxDecoration(color: cor.withOpacity(0.88), borderRadius: const BorderRadius.vertical(top: Radius.circular(7))),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(rotulos[indice], style: const TextStyle(fontSize: 9, color: CoresHortasmart.textoSecundario)),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _LinhaCanteiro extends StatelessWidget {
+  const _LinhaCanteiro({required this.canteiro, required this.litros});
+  final Canteiro canteiro;
+  final int litros;
+
+  String get _emoji {
+    switch (canteiro.cultura.toLowerCase()) {
+      case 'alface': return '🥬';
+      case 'tomate': return '🍅';
+      case 'cenoura': return '🥕';
+      case 'rúcula':
+      case 'rucula': return '🌿';
+      default: return '🌱';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = classificarUmidade(canteiro.umidadeAtual);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE6ECE7))),
+      child: Row(children: [
+        Container(width: 42, height: 42, alignment: Alignment.center, decoration: BoxDecoration(color: CoresHortasmart.verdeClaro, borderRadius: BorderRadius.circular(13)), child: Text(_emoji, style: const TextStyle(fontSize: 24))),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(canteiro.cultura, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: CoresHortasmart.texto)),
+          const SizedBox(height: 3),
+          Text('Umidade média: ${canteiro.umidadeAtual.round()}%', style: const TextStyle(fontSize: 10, color: CoresHortasmart.textoSecundario)),
+        ])),
+        EtiquetaStatus(texto: estado.texto, cor: estado.cor, fundo: estado.fundo),
+        const SizedBox(width: 10),
+        Text('$litros L', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: CoresHortasmart.texto)),
+      ]),
+    );
+  }
+}
+
+class _CartaoVazio extends StatelessWidget {
+  const _CartaoVazio();
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+    child: const Text('Cadastre um canteiro para consultar o histórico.', style: TextStyle(color: CoresHortasmart.textoSecundario)),
+  );
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\controle_umidade.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\controle_umidade.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\controle_umidade.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../../compartilhado/constantes/cores.dart';
+
+class ControleUmidade extends StatelessWidget {
+  const ControleUmidade({super.key, required this.valor, required this.aoAlterar, this.habilitado = true});
+  final double valor;
+  final ValueChanged<double> aoAlterar;
+  final bool habilitado;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          const Expanded(child: Text('Meta de umidade', style: TextStyle(color: CoresHortasmart.texto, fontWeight: FontWeight.w800, fontSize: 15))),
+          Text('${valor.round()}%', style: const TextStyle(color: CoresHortasmart.verde, fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: -1)),
+        ]),
+        const SizedBox(height: 5),
+        const Text('Defina o objetivo de umidade para este canteiro.', style: TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 12)),
+        Slider(value: valor.clamp(0, 100).toDouble(), min: 0, max: 100, divisions: 20, label: '${valor.round()}%', onChanged: habilitado ? aoAlterar : null),
+        const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text('0% · Seco', style: TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 11)),
+          Text('100% · Úmido', style: TextStyle(color: CoresHortasmart.textoSecundario, fontSize: 11)),
+        ]),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\seletor_modo.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\seletor_modo.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\seletor_modo.dart
+==================================================
+import 'package:flutter/material.dart';
+import '../../dados/modelos/canteiro.dart';
+import '../../compartilhado/constantes/cores.dart';
+
+class SeletorModo extends StatelessWidget {
+  const SeletorModo({super.key, required this.modo, required this.aoAlterar});
+  final ModoIrrigacao modo;
+  final ValueChanged<ModoIrrigacao> aoAlterar;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<ModoIrrigacao>(
+      segments: const [
+        ButtonSegment(value: ModoIrrigacao.automatico, label: Text('Automático'), icon: Icon(Icons.autorenew_rounded)),
+        ButtonSegment(value: ModoIrrigacao.manual, label: Text('Manual'), icon: Icon(Icons.touch_app_outlined)),
+      ],
+      selected: {modo},
+      onSelectionChanged: (selecionados) => aoAlterar(selecionados.first),
+      showSelectedIcon: false,
+      style: ButtonStyle(
+        padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 13, horizontal: 8)),
+        foregroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? Colors.white : CoresHortasmart.textoSecundario),
+        backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? CoresHortasmart.verde : Colors.white),
+      ),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\tela_irrigacao.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\tela_irrigacao.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\irrigacao\tela_irrigacao.dart
+==================================================
+import 'package:flutter/material.dart';
+
+import '../../compartilhado/componentes/area_pagina.dart';
+import '../../compartilhado/componentes/aviso_demonstracao.dart';
+import '../../compartilhado/componentes/etiqueta_status.dart';
+import '../../compartilhado/componentes/titulo_secao.dart';
+import '../../compartilhado/componentes/indicador_umidade.dart';
+import '../../compartilhado/constantes/cores.dart';
+import '../../dados/modelos/canteiro.dart';
+
+import 'seletor_modo.dart';
+
+class TelaIrrigacao extends StatefulWidget {
+  const TelaIrrigacao({
+    super.key,
+    required this.canteiros,
+    required this.aoAtualizarCanteiro,
+    this.canteiroInicialId,
+  });
+
+  final List<Canteiro> canteiros;
+  final ValueChanged<Canteiro> aoAtualizarCanteiro;
+  final String? canteiroInicialId;
+
+  @override
+  State<TelaIrrigacao> createState() => _TelaIrrigacaoState();
+}
+
+class _TelaIrrigacaoState extends State<TelaIrrigacao> {
+  String? _idSelecionado;
+  double _metaTemporaria = 65;
+  int _intervaloTemporario = 4;
+
+  Canteiro? get _selecionado {
+    if (widget.canteiros.isEmpty) return null;
+
+    for (final canteiro in widget.canteiros) {
+      if (canteiro.id == _idSelecionado) {
+        return canteiro;
+      }
+    }
+
+    return widget.canteiros.first;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.canteiros.isNotEmpty) {
+      Canteiro inicial = widget.canteiros.first;
+
+      for (final item in widget.canteiros) {
+        if (item.id == widget.canteiroInicialId) {
+          inicial = item;
+          break;
+        }
+      }
+
+      _idSelecionado = inicial.id;
+      _carregarConfiguracao(inicial);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TelaIrrigacao oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.canteiros.isEmpty) {
+      _idSelecionado = null;
+      return;
+    }
+
+    if (widget.canteiroInicialId != oldWidget.canteiroInicialId &&
+        widget.canteiroInicialId != null) {
+      for (final item in widget.canteiros) {
+        if (item.id == widget.canteiroInicialId) {
+          _idSelecionado = item.id;
+          _carregarConfiguracao(item);
+          return;
+        }
+      }
+    }
+
+    final selecaoExiste = widget.canteiros.any(
+      (canteiro) => canteiro.id == _idSelecionado,
+    );
+
+    if (!selecaoExiste) {
+      _idSelecionado = widget.canteiros.first.id;
+      _carregarConfiguracao(widget.canteiros.first);
+    }
+  }
+
+  void _carregarConfiguracao(Canteiro canteiro) {
+    _metaTemporaria = canteiro.metaUmidade;
+    _intervaloTemporario = canteiro.intervaloHoras;
+  }
+
+  void _selecionar(Canteiro canteiro) {
+    setState(() {
+      _idSelecionado = canteiro.id;
+      _carregarConfiguracao(canteiro);
+    });
+  }
+
+  void _mensagem(String texto) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(texto),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _salvar(Canteiro canteiro) {
+    widget.aoAtualizarCanteiro(
+      canteiro.copiarCom(
+        metaUmidade: _metaTemporaria,
+        intervaloHoras: _intervaloTemporario,
+      ),
+    );
+
+    _mensagem('Configurações salvas nesta prévia.');
+  }
+
+  void _alternarBomba(Canteiro canteiro, bool ligar) {
+    widget.aoAtualizarCanteiro(
+      canteiro.copiarCom(irrigando: ligar),
+    );
+
+    _mensagem(
+      ligar
+          ? 'Irrigação iniciada apenas na prévia. Nenhuma bomba física foi acionada.'
+          : 'Irrigação parada apenas na prévia.',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.canteiros.isEmpty) {
+      return const AreaPagina(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.water_drop_outlined,
+                  size: 42,
+                  color: CoresHortasmart.verde,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Nenhum canteiro cadastrado',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    color: CoresHortasmart.texto,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'Acesse Configurações para cadastrar um canteiro e configurar a irrigação.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.4,
+                    color: CoresHortasmart.textoSecundario,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final canteiro = _selecionado!;
+    final automatico = canteiro.modo == ModoIrrigacao.automatico;
+
+    return AreaPagina(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AvisoDemonstracao(
+              texto:
+                  'Os controles são demonstrativos: o aplicativo ainda não envia comandos físicos ao ESP32.',
+            ),
+            const SizedBox(height: 16),
+            const TituloSecao(
+              titulo: 'Selecione o canteiro',
+              detalhe: 'Controle individual',
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: canteiro.id,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.grass_rounded),
+                labelText: 'Canteiro que será controlado',
+              ),
+              items: widget.canteiros.map((item) {
+                return DropdownMenuItem(
+                  value: item.id,
+                  child: Text(
+                    '${item.cultura} · ${item.nome}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: (id) {
+                for (final item in widget.canteiros) {
+                  if (item.id == id) {
+                    _selecionar(item);
+                    break;
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 15),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final resumo = _CartaoResumoCanteiro(
+                  canteiro: canteiro,
+                );
+
+                final modoMeta = _CartaoModoMeta(
+                  canteiro: canteiro,
+                  metaTemporaria: _metaTemporaria,
+                  intervaloTemporario: _intervaloTemporario,
+                  aoAlterarModo: (modo) {
+                    widget.aoAtualizarCanteiro(
+                      canteiro.copiarCom(modo: modo),
+                    );
+                  },
+                  aoAlterarMeta: (valor) {
+                    setState(() => _metaTemporaria = valor);
+                  },
+                  aoAlterarIntervalo: (valor) {
+                    setState(() => _intervaloTemporario = valor);
+                  },
+                );
+
+                final comando = _CartaoComandoManual(
+                  canteiro: canteiro,
+                  automatico: automatico,
+                  aoIniciar: () => _alternarBomba(canteiro, true),
+                  aoParar: () => _alternarBomba(canteiro, false),
+                );
+
+                final estado = _CartaoEstadoBomba(
+                  canteiro: canteiro,
+                );
+
+                final seguranca = _CartaoSeguranca(
+                  automatico: automatico,
+                );
+
+                if (constraints.maxWidth >= 820) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: [
+                            resumo,
+                            const SizedBox(height: 13),
+                            modoMeta,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            comando,
+                            const SizedBox(height: 13),
+                            estado,
+                            const SizedBox(height: 13),
+                            seguranca,
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Column(
+                  children: [
+                    resumo,
+                    const SizedBox(height: 13),
+                    modoMeta,
+                    const SizedBox(height: 13),
+                    comando,
+                    const SizedBox(height: 13),
+                    estado,
+                    const SizedBox(height: 13),
+                    seguranca,
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _salvar(canteiro),
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('Salvar configurações do canteiro'),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CartaoResumoCanteiro extends StatelessWidget {
+  const _CartaoResumoCanteiro({
+    required this.canteiro,
+  });
+
+  final Canteiro canteiro;
+
+  String get _emoji {
+    switch (canteiro.cultura.toLowerCase()) {
+      case 'alface':
+        return '🥬';
+      case 'tomate':
+        return '🍅';
+      case 'cenoura':
+        return '🥕';
+      case 'rúcula':
+      case 'rucula':
+        return '🌿';
+      default:
+        return '🌱';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = classificarUmidade(canteiro.umidadeAtual);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5ECE6)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: CoresHortasmart.verdeClaro,
+              borderRadius: BorderRadius.circular(17),
+            ),
+            child: Text(
+              _emoji,
+              style: const TextStyle(fontSize: 31),
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  canteiro.cultura,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: CoresHortasmart.texto,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${canteiro.nome} · Sensor ${canteiro.id.split('-').last.toUpperCase()}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: CoresHortasmart.textoSecundario,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    value: (canteiro.umidadeAtual / 100)
+                        .clamp(0.0, 1.0)
+                        .toDouble(),
+                    minHeight: 6,
+                    backgroundColor: const Color(0xFFE8EEE8),
+                    valueColor: AlwaysStoppedAnimation(estado.cor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${canteiro.umidadeAtual.round()}%',
+                style: TextStyle(
+                  fontSize: 28,
+                  height: 1.1,
+                  fontWeight: FontWeight.w900,
+                  color: estado.cor,
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(height: 5),
+              EtiquetaStatus(
+                texto: estado.texto,
+                cor: estado.cor,
+                fundo: estado.fundo,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CartaoModoMeta extends StatelessWidget {
+  const _CartaoModoMeta({
+    required this.canteiro,
+    required this.metaTemporaria,
+    required this.intervaloTemporario,
+    required this.aoAlterarModo,
+    required this.aoAlterarMeta,
+    required this.aoAlterarIntervalo,
+  });
+
+  final Canteiro canteiro;
+  final double metaTemporaria;
+  final int intervaloTemporario;
+  final ValueChanged<ModoIrrigacao> aoAlterarModo;
+  final ValueChanged<double> aoAlterarMeta;
+  final ValueChanged<int> aoAlterarIntervalo;
+
+  @override
+  Widget build(BuildContext context) {
+    final automatico = canteiro.modo == ModoIrrigacao.automatico;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5ECE6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Modo de operação',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: CoresHortasmart.texto,
+            ),
+          ),
+          const SizedBox(height: 11),
+          SeletorModo(
+            modo: canteiro.modo,
+            aoAlterar: aoAlterarModo,
+          ),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Expanded(
+                child: Text(
+                  'Meta de umidade',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: CoresHortasmart.texto,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.water_drop_outlined,
+                color: CoresHortasmart.verde,
+                size: 19,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${metaTemporaria.round()}%',
+                style: const TextStyle(
+                  fontSize: 24,
+                  height: 1,
+                  fontWeight: FontWeight.w900,
+                  color: CoresHortasmart.verde,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Objetivo de umidade para este canteiro.',
+            style: TextStyle(
+              fontSize: 11,
+              color: CoresHortasmart.textoSecundario,
+            ),
+          ),
+          Slider(
+            value: metaTemporaria.clamp(0.0, 100.0).toDouble(),
+            min: 0,
+            max: 100,
+            divisions: 20,
+            label: '${metaTemporaria.round()}%',
+            onChanged: aoAlterarMeta,
+          ),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '0% · Seco',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: CoresHortasmart.textoSecundario,
+                ),
+              ),
+              Text(
+                '100% · Úmido',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: CoresHortasmart.textoSecundario,
+                ),
+              ),
+            ],
+          ),
+          if (automatico) ...[
+            const SizedBox(height: 18),
+            DropdownButtonFormField<int>(
+              value: _intervaloValido(intervaloTemporario),
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Verificar a cada',
+                prefixIcon: Icon(Icons.schedule_rounded),
+              ),
+              items: const [1, 2, 4, 6, 8, 12, 24]
+                  .map(
+                    (h) => DropdownMenuItem(
+                      value: h,
+                      child: Text('$h ${h == 1 ? 'hora' : 'horas'}'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (valor) {
+                if (valor != null) {
+                  aoAlterarIntervalo(valor);
+                }
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  int _intervaloValido(int intervalo) {
+    const intervalos = [1, 2, 4, 6, 8, 12, 24];
+    return intervalos.contains(intervalo) ? intervalo : 4;
+  }
+}
+
+class _CartaoComandoManual extends StatelessWidget {
+  const _CartaoComandoManual({
+    required this.canteiro,
+    required this.automatico,
+    required this.aoIniciar,
+    required this.aoParar,
+  });
+
+  final Canteiro canteiro;
+  final bool automatico;
+  final VoidCallback aoIniciar;
+  final VoidCallback aoParar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5ECE6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Controle manual',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: CoresHortasmart.texto,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            automatico
+                ? 'Mude para o modo manual para ativar os comandos.'
+                : 'Inicie ou interrompa a irrigação deste canteiro.',
+            style: const TextStyle(
+              fontSize: 11,
+              height: 1.4,
+              color: CoresHortasmart.textoSecundario,
+            ),
+          ),
+          const SizedBox(height: 15),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final empilhados = constraints.maxWidth < 360;
+
+              final iniciar = FilledButton.icon(
+                onPressed: automatico || canteiro.irrigando ? null : aoIniciar,
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: const Text('Iniciar irrigação'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: CoresHortasmart.verde,
+                  minimumSize: const Size(0, 48),
+                ),
+              );
+
+              final parar = FilledButton.icon(
+                onPressed: automatico || !canteiro.irrigando ? null : aoParar,
+                icon: const Icon(Icons.stop_circle_outlined),
+                label: const Text('Parar irrigação'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: CoresHortasmart.vermelho,
+                  minimumSize: const Size(0, 48),
+                ),
+              );
+
+              if (empilhados) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    iniciar,
+                    const SizedBox(height: 9),
+                    parar,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: iniciar),
+                  const SizedBox(width: 9),
+                  Expanded(child: parar),
+                ],
+              );
+            },
+          ),
+          if (automatico) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Os botões ficam bloqueados no modo automático para evitar comandos conflitantes.',
+              style: TextStyle(
+                fontSize: 10,
+                color: CoresHortasmart.textoSecundario,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CartaoEstadoBomba extends StatelessWidget {
+  const _CartaoEstadoBomba({
+    required this.canteiro,
+  });
+
+  final Canteiro canteiro;
+
+  @override
+  Widget build(BuildContext context) {
+    final cor = canteiro.irrigando
+        ? CoresHortasmart.azul
+        : CoresHortasmart.textoSecundario;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF5ED),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFD9EBDD)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 43,
+            height: 43,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: const Icon(
+              Icons.water_drop_rounded,
+              color: CoresHortasmart.verde,
+              size: 23,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Bomba de irrigação',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: CoresHortasmart.texto,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Status na prévia: ${canteiro.irrigando ? 'Ligada' : 'Desligada'}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: cor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: canteiro.irrigando
+                  ? CoresHortasmart.azul
+                  : const Color(0xFF9CAAA0),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CartaoSeguranca extends StatelessWidget {
+  const _CartaoSeguranca({
+    required this.automatico,
+  });
+
+  final bool automatico;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F6F1),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.eco_rounded,
+            color: CoresHortasmart.verde,
+            size: 21,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              automatico
+                  ? 'No modo automático, o ESP32 deverá avaliar a umidade e a programação e aplicar limites de segurança antes de ligar a bomba.'
+                  : 'No modo manual, confirme a disponibilidade de água e as proteções da instalação antes de iniciar.',
+              style: const TextStyle(
+                fontSize: 11,
+                height: 1.45,
+                color: CoresHortasmart.texto,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\painel\cartao_canteiro.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\painel\cartao_canteiro.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\painel\cartao_canteiro.dart
+==================================================
+import 'package:flutter/material.dart';
+import 'package:hortasmart/compartilhado/componentes/indicador_umidade.dart';
+import '../../dados/modelos/canteiro.dart';
+import '../../compartilhado/componentes/etiqueta_status.dart';
+import '../../compartilhado/constantes/cores.dart';
+
+class CartaoCanteiro extends StatelessWidget {
+  const CartaoCanteiro({
+    super.key,
+    required this.canteiro,
+    this.aoTocar,
+  });
+
+  final Canteiro canteiro;
+  final VoidCallback? aoTocar;
+
+  String get _emoji {
+    switch (canteiro.cultura.toLowerCase()) {
+      case 'alface':
+      case 'rúcula':
+      case 'rucula':
+      case 'couve':
+        return '🥬';
+      case 'tomate':
+        return '🍅';
+      case 'cenoura':
+        return '🥕';
+      case 'manjericão':
+      case 'manjericao':
+        return '🌿';
+      default:
+        return '🌱';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = classificarUmidade(canteiro.umidadeAtual);
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: aoTocar,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFE5ECE6),
+            ),
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final estreito = constraints.maxWidth < 280;
+
+              final imagem = Container(
+                width: estreito ? 48.0 : 61.0,
+                height: estreito ? 58.0 : 70.0,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF5E9),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: Text(
+                  _emoji,
+                  style: TextStyle(
+                    fontSize: estreito ? 29 : 35,
+                  ),
+                ),
+              );
+
+              final conteudo = Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            canteiro.cultura,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                              color: CoresHortasmart.texto,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: Colors.grey,
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${canteiro.nome} · Sensor '
+                      '${canteiro.id.split('-').last.toUpperCase()}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: CoresHortasmart.textoSecundario,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Umidade e status adaptáveis.
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 7,
+                      runSpacing: 5,
+                      children: [
+                        Text(
+                          '${canteiro.umidadeAtual.round()}%',
+                          style: TextStyle(
+                            fontSize: 25,
+                            height: 1,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.7,
+                            color: estado.cor,
+                          ),
+                        ),
+                        const Text(
+                          'umidade',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: CoresHortasmart.textoSecundario,
+                          ),
+                        ),
+                        EtiquetaStatus(
+                          texto: estado.texto,
+                          cor: estado.cor,
+                          fundo: estado.fundo,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 9),
+
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: canteiro.umidadeAtual.clamp(0, 100) / 100,
+                        minHeight: 6,
+                        backgroundColor: const Color(0xFFEAF0E9),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          estado.cor,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 7),
+
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 5,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.flag_outlined,
+                              size: 13,
+                              color: CoresHortasmart.textoSecundario,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Meta ${canteiro.metaUmidade.round()}%',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: CoresHortasmart.textoSecundario,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              canteiro.irrigando
+                                  ? Icons.water_drop_rounded
+                                  : Icons.pause_circle_outline_rounded,
+                              size: 14,
+                              color: canteiro.irrigando
+                                  ? CoresHortasmart.azul
+                                  : CoresHortasmart.textoSecundario,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              canteiro.irrigando ? 'Irrigando' : 'Pausado',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: canteiro.irrigando
+                                    ? CoresHortasmart.azul
+                                    : CoresHortasmart.textoSecundario,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+
+              if (estreito) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    imagem,
+                    const SizedBox(height: 10),
+                    conteudo,
+                  ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  imagem,
+                  const SizedBox(width: 13),
+                  conteudo,
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\painel\estado_conexao.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\painel\estado_conexao.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\painel\estado_conexao.dart
+==================================================
+import 'package:flutter/material.dart';
+
+import '../../compartilhado/constantes/cores.dart';
+
+class EstadoConexao extends StatelessWidget {
+  const EstadoConexao({super.key, required this.dispositivosConectados, required this.totalDispositivos});
+
+  final int dispositivosConectados;
+  final int totalDispositivos;
+
+  @override
+  Widget build(BuildContext context) {
+    final todosConectados = totalDispositivos > 0 && dispositivosConectados == totalDispositivos;
+    final algumConectado = dispositivosConectados > 0;
+    final cor = todosConectados ? CoresHortasmart.verde : algumConectado ? CoresHortasmart.amarelo : CoresHortasmart.vermelho;
+    final fundo = todosConectados ? CoresHortasmart.verdeClaro : algumConectado ? CoresHortasmart.amareloClaro : CoresHortasmart.vermelhoClaro;
+    final titulo = todosConectados ? 'ESP32 conectado' : algumConectado ? 'Conexão parcial' : 'ESP32 desconectado';
+    final detalhe = dispositivosConectados == 0
+        ? 'Nenhum dispositivo online'
+        : '$dispositivosConectados de $totalDispositivos dispositivos online';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE5ECE6))),
+      child: Row(children: [
+        Container(width: 43, height: 43, decoration: BoxDecoration(color: fundo, borderRadius: BorderRadius.circular(14)), child: Icon(Icons.wifi_rounded, color: cor, size: 24)),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(titulo, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: CoresHortasmart.texto)),
+          const SizedBox(height: 4),
+          Text('$detalhe · última atualização demonstrativa', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: CoresHortasmart.textoSecundario, height: 1.3)),
+        ])),
+        const SizedBox(width: 8),
+        Container(width: 10, height: 10, decoration: BoxDecoration(color: cor, shape: BoxShape.circle)),
+      ]),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\painel\tela_painel.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\funcionalidades\painel\tela_painel.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\funcionalidades\painel\tela_painel.dart
+==================================================
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+
+import '../../dados/modelos/canteiro.dart';
+import '../../dados/modelos/previsao_tempo.dart';
+import '../../dados/servicos/servico_clima.dart';
+import '../../compartilhado/componentes/area_pagina.dart';
+import '../../compartilhado/componentes/aviso_demonstracao.dart';
+import '../../compartilhado/componentes/titulo_secao.dart';
+import '../../compartilhado/constantes/cores.dart';
+import 'cartao_canteiro.dart';
+import 'estado_conexao.dart';
+
+class TelaPainel extends StatelessWidget {
+  const TelaPainel({
+    super.key,
+    required this.canteiros,
+    required this.aoAbrirIrrigacao,
+    required this.aoAbrirCanteiro,
+  });
+
+  final List<Canteiro> canteiros;
+  final VoidCallback aoAbrirIrrigacao;
+  final ValueChanged<Canteiro> aoAbrirCanteiro;
+
+  @override
+  Widget build(BuildContext context) {
+    final conectados = canteiros.where((c) => c.conectado).length;
+    final irrigando = canteiros.where((c) => c.irrigando).length;
+    final criticos = canteiros.where((c) => c.umidadeAtual < 30).length;
+
+    return AreaPagina(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AvisoDemonstracao(
+              texto:
+                  'Prévia visual: leituras e conexão ainda são dados demonstrativos.',
+            ),
+            const SizedBox(height: 13),
+            EstadoConexao(
+              dispositivosConectados: conectados,
+              totalDispositivos: canteiros.length,
+            ),
+            const SizedBox(height: 12),
+            _CartaoClima(irrigando: irrigando),
+            const SizedBox(height: 22),
+            TituloSecao(
+              titulo: 'Canteiros da plantação',
+              detalhe: '${canteiros.length} cadastrados',
+            ),
+            const SizedBox(height: 12),
+            if (canteiros.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(26),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(
+                      Icons.grass_rounded,
+                      size: 38,
+                      color: CoresHortasmart.textoSecundario,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Nenhum canteiro cadastrado',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: CoresHortasmart.texto,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Abra Configurações para adicionar seu primeiro canteiro.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: CoresHortasmart.textoSecundario,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final colunas = constraints.maxWidth >= 760 ? 2 : 1;
+
+                  return GridView.builder(
+                    itemCount: canteiros.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: colunas,
+                      mainAxisSpacing: 11,
+                      crossAxisSpacing: 11,
+                      mainAxisExtent: 148,
+                    ),
+                    itemBuilder: (context, indice) => CartaoCanteiro(
+                      canteiro: canteiros[indice],
+                      aoTocar: () => aoAbrirCanteiro(canteiros[indice]),
+                    ),
+                  );
+                },
+              ),
+            const SizedBox(height: 18),
+            if (criticos > 0)
+              _AvisoCritico(
+                quantidade: criticos,
+                aoAbrirIrrigacao: aoAbrirIrrigacao,
+              )
+            else
+              _CartaoAutomacao(aoAbrirIrrigacao: aoAbrirIrrigacao),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CartaoClima extends StatefulWidget {
+  const _CartaoClima({required this.irrigando});
+
+  final int irrigando;
+
+  @override
+  State<_CartaoClima> createState() => _CartaoClimaState();
+}
+
+class _CartaoClimaState extends State<_CartaoClima> {
+  final ServicoClima _servico = ServicoClima();
+  final TextEditingController _cidadeController = TextEditingController();
+
+  PrevisaoTempo? _previsao;
+  bool _carregando = false;
+  bool _buscandoLocalizacao = false;
+  String? _erro;
+
+  Future<void> _buscarClima() async {
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _carregando = true;
+      _erro = null;
+    });
+
+    try {
+      final resultado = await _servico.buscarPorCidade(
+        _cidadeController.text,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _previsao = resultado;
+        _cidadeController.text = resultado.cidade;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _erro = _mensagemErro(e);
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _carregando = false);
+      }
+    }
+  }
+
+  Future<void> _buscarPelaLocalizacao() async {
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _buscandoLocalizacao = true;
+      _erro = null;
+    });
+
+    try {
+      final servicosAtivos = await Geolocator.isLocationServiceEnabled();
+
+      if (!servicosAtivos) {
+        throw Exception(
+          'Ative a localização do dispositivo e tente novamente.',
+        );
+      }
+
+      var permissao = await Geolocator.checkPermission();
+
+      if (permissao == LocationPermission.denied) {
+        permissao = await Geolocator.requestPermission();
+      }
+
+      if (permissao == LocationPermission.denied) {
+        throw Exception(
+          'A permissão de localização foi negada. Autorize para continuar.',
+        );
+      }
+
+      if (permissao == LocationPermission.deniedForever) {
+        throw Exception(
+          'A localização está bloqueada nas permissões do sistema. '
+          'Ative-a nas configurações do dispositivo.',
+        );
+      }
+
+      final posicao = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 20),
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() => _carregando = true);
+
+      final resultado = await _servico.buscarPorCoordenadas(
+        latitude: posicao.latitude,
+        longitude: posicao.longitude,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _previsao = resultado;
+        _cidadeController.text = resultado.cidade;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _erro = _mensagemErro(e);
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _carregando = false;
+          _buscandoLocalizacao = false;
+        });
+      }
+    }
+  }
+
+  String _mensagemErro(Object erro) {
+    return erro
+        .toString()
+        .replaceFirst('Exception: ', '')
+        .replaceFirst('Invalid argument(s): ', '');
+  }
+
+  @override
+  void dispose() {
+    _cidadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final clima = _previsao;
+    final ocupado = _carregando || _buscandoLocalizacao;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF172B3A),
+        borderRadius: BorderRadius.circular(21),
+        border: Border.all(color: const Color(0xFF2D4556)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF172B3A).withValues(alpha: 0.10),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.cloud_outlined,
+                color: Color(0xFFB7D8E9),
+                size: 19,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'PREVISÃO DO TEMPO',
+                style: TextStyle(
+                  color: Color(0xFFD4E3EC),
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 13),
+
+          // Campo de cidade e botão de localização lado a lado.
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 46,
+                  child: TextField(
+                    controller: _cidadeController,
+                    enabled: !ocupado,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _buscarClima(),
+                    decoration: InputDecoration(
+                      hintText: 'Digite uma cidade...',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFFB8C9D5),
+                        fontSize: 12,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: Color(0xFFD4E3EC),
+                        size: 19,
+                      ),
+                      suffixIcon: IconButton(
+                        tooltip: 'Pesquisar cidade',
+                        onPressed: ocupado ? null : _buscarClima,
+                        icon: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 19,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFF263D4D),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF3C5668),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF83D7F4),
+                          width: 1.3,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 46,
+                height: 46,
+                child: IconButton(
+                  onPressed: ocupado ? null : _buscarPelaLocalizacao,
+                  tooltip: 'Usar minha localização',
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF247BA0),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF405664),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: _buscandoLocalizacao
+                      ? const SizedBox(
+                          width: 19,
+                          height: 19,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.my_location_rounded, size: 21),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 15),
+
+          if (ocupado)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(14),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Color(0xFF83D7F4),
+                      ),
+                    ),
+                    SizedBox(height: 9),
+                    Text(
+                      'Consultando condições do tempo...',
+                      style: TextStyle(
+                        color: Color(0xFFD4E3EC),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (_erro != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5A3038),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: Color(0xFFFFD2D2),
+                    size: 19,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _erro!,
+                      style: const TextStyle(
+                        color: Color(0xFFFFE5E5),
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (clima == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 9),
+              child: Text(
+                'Pesquise uma cidade ou toque no botão de localização '
+                'para consultar o clima atual.',
+                style: TextStyle(
+                  color: Color(0xFFD4E3EC),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            )
+          else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            color: Color(0xFFB7D8E9),
+                            size: 15,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '${clima.cidade}'
+                              '${clima.pais.isNotEmpty ? ', ${clima.pais}' : ''}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFD4E3EC),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${clima.temperatura.round()}°C',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 37,
+                          height: 1,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        clima.condicao,
+                        style: const TextStyle(
+                          color: Color(0xFFE4EEF4),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  _iconeClima(clima.codigoClima),
+                  color: _corIconeClima(clima.codigoClima),
+                  size: 61,
+                ),
+              ],
+            ),
+            const SizedBox(height: 17),
+            Container(
+              height: 1,
+              color: const Color(0xFF405664),
+            ),
+            const SizedBox(height: 13),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final largura = (constraints.maxWidth - 24) / 3;
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: largura,
+                      child: _DadoClima(
+                        icone: Icons.water_drop_outlined,
+                        titulo: 'Umidade',
+                        valor: '${clima.umidadeRelativa.round()}%',
+                      ),
+                    ),
+                    SizedBox(
+                      width: largura,
+                      child: _DadoClima(
+                        icone: Icons.cloud_outlined,
+                        titulo: 'Chuva/hora',
+                        valor: '${clima.probabilidadeChuva.round()}%',
+                      ),
+                    ),
+                    SizedBox(
+                      width: largura,
+                      child: _DadoClima(
+                        icone: Icons.air_rounded,
+                        titulo: 'Vento',
+                        valor: '${clima.velocidadeVento.round()} km/h',
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 13),
+            Row(
+              children: [
+                const Icon(
+                  Icons.access_time_rounded,
+                  color: Color(0xFFB7D8E9),
+                  size: 13,
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    'Atualizado às '
+                    '${clima.atualizadoEm.hour.toString().padLeft(2, '0')}:'
+                    '${clima.atualizadoEm.minute.toString().padLeft(2, '0')}',
+                    style: const TextStyle(
+                      color: Color(0xFFB7D8E9),
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.eco_outlined,
+                  color: Color(0xFF9ED7BB),
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '${widget.irrigando} '
+                    '${widget.irrigando == 1 ? 'irrigando' : 'irrigando'}',
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFFD4E3EC),
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  IconData _iconeClima(int codigo) {
+    if (codigo == 0) return Icons.wb_sunny_rounded;
+    if (codigo == 1 || codigo == 2) return Icons.cloud_queue_rounded;
+    if (codigo == 3) return Icons.cloud_rounded;
+
+    if (codigo == 45 || codigo == 48) {
+      return Icons.foggy;
+    }
+
+    if ((codigo >= 51 && codigo <= 67) || (codigo >= 80 && codigo <= 82)) {
+      return Icons.grain_rounded;
+    }
+
+    if (codigo >= 71 && codigo <= 77 || codigo == 85 || codigo == 86) {
+      return Icons.ac_unit_rounded;
+    }
+
+    if (codigo >= 95) return Icons.thunderstorm_rounded;
+
+    return Icons.cloud_rounded;
+  }
+
+  Color _corIconeClima(int codigo) {
+    if (codigo == 0 || codigo == 1 || codigo == 2) {
+      return const Color(0xFFF6CB76);
+    }
+
+    return const Color(0xFFB7DFF4);
+  }
+}
+
+class _DadoClima extends StatelessWidget {
+  const _DadoClima({
+    required this.icone,
+    required this.titulo,
+    required this.valor,
+  });
+
+  final IconData icone;
+  final String titulo;
+  final String valor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icone,
+              color: const Color(0xFF83D7F4),
+              size: 15,
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                titulo,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFFB7D8E9),
+                  fontSize: 9,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Text(
+          valor,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CartaoAutomacao extends StatelessWidget {
+  const _CartaoAutomacao({required this.aoAbrirIrrigacao});
+
+  final VoidCallback aoAbrirIrrigacao;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF5ED),
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(color: const Color(0xFFD9EBDD)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: const Icon(
+              Icons.eco_rounded,
+              color: CoresHortasmart.verde,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Automação inteligente',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: CoresHortasmart.texto,
+                    fontSize: 13,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Defina a meta de umidade e a programação de cada canteiro.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    height: 1.35,
+                    color: CoresHortasmart.textoSecundario,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: aoAbrirIrrigacao,
+            tooltip: 'Configurar irrigação',
+            icon: const Icon(
+              Icons.arrow_forward_rounded,
+              color: CoresHortasmart.verde,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AvisoCritico extends StatelessWidget {
+  const _AvisoCritico({
+    required this.quantidade,
+    required this.aoAbrirIrrigacao,
+  });
+
+  final int quantidade;
+  final VoidCallback aoAbrirIrrigacao;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: CoresHortasmart.vermelhoClaro,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFF5CECB)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: CoresHortasmart.vermelho,
+            size: 25,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$quantidade '
+              '${quantidade == 1 ? 'canteiro está' : 'canteiros estão'} '
+              'com umidade crítica. Confira as leituras antes de irrigar.',
+              style: const TextStyle(
+                color: CoresHortasmart.texto,
+                fontSize: 12,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: aoAbrirIrrigacao,
+            tooltip: 'Abrir irrigação',
+            icon: const Icon(
+              Icons.arrow_forward_rounded,
+              color: CoresHortasmart.vermelho,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\aplicativo.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\principal\aplicativo.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\aplicativo.dart
+==================================================
+import 'package:flutter/material.dart';
+import 'tema.dart';
+import 'tela_principal.dart';
+
+class AplicativoHortasmart extends StatelessWidget {
+  const AplicativoHortasmart({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'HortaSmart',
+      debugShowCheckedModeBanner: false,
+      theme: TemaHortasmart.claro,
+      home: const TelaPrincipal(),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\rotas.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\principal\rotas.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\rotas.dart
+==================================================
+/// Identificadores das quatro áreas principais do aplicativo.
+/// A navegação principal usa NavigationBar em [TelaPrincipal].
+abstract final class RotasHortasmart {
+  static const int painel = 0;
+  static const int irrigacao = 1;
+  static const int historico = 2;
+  static const int configuracoes = 3;
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\tela_principal.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\principal\tela_principal.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\tela_principal.dart
+==================================================
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../compartilhado/componentes/cabecalho_aplicativo.dart';
+import '../compartilhado/constantes/cores.dart';
+import '../dados/modelos/canteiro.dart';
+import '../dados/repositorios/repositorio_canteiro.dart';
+import '../funcionalidades/configuracoes/tela_configuracoes.dart';
+import '../funcionalidades/historico/tela_historico.dart';
+import '../funcionalidades/irrigacao/tela_irrigacao.dart';
+import '../funcionalidades/painel/tela_painel.dart';
+import 'rotas.dart';
+
+class TelaPrincipal extends StatefulWidget {
+  const TelaPrincipal({super.key});
+
+  @override
+  State<TelaPrincipal> createState() => _TelaPrincipalState();
+}
+
+class _TelaPrincipalState extends State<TelaPrincipal> {
+  int _indiceSelecionado = RotasHortasmart.painel;
+  String? _canteiroInicialIrrigacao;
+  late List<Canteiro> _canteiros;
+
+  @override
+  void initState() {
+    super.initState();
+    _canteiros = RepositorioCanteiro.criarDadosDemonstracao();
+  }
+
+  void _atualizarCanteiro(Canteiro atualizado) {
+    setState(() {
+      _canteiros = _canteiros
+          .map((canteiro) => canteiro.id == atualizado.id ? atualizado : canteiro)
+          .toList();
+    });
+  }
+
+  void _adicionarCanteiro(Canteiro novo) {
+    setState(() => _canteiros = [..._canteiros, novo]);
+  }
+
+  void _removerCanteiro(String id) {
+    setState(() => _canteiros = _canteiros.where((canteiro) => canteiro.id != id).toList());
+  }
+
+  void _acaoCabecalho() {
+    switch (_indiceSelecionado) {
+      case 0:
+        showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            icon: const Icon(Icons.notifications_active_outlined, color: CoresHortasmart.verde, size: 30),
+            title: const Text('Notificações'),
+            content: const Text('Não há notificações novas nesta prévia. Quando o Firebase estiver integrado, alertas de umidade poderão aparecer aqui.'),
+            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendi'))],
+          ),
+        );
+        break;
+      case 1:
+        setState(() => _indiceSelecionado = RotasHortasmart.configuracoes);
+        break;
+      case 2:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Altere o período pelos controles na tela de histórico.'), behavior: SnackBarBehavior.floating),
+        );
+        break;
+      default:
+        showAboutDialog(
+          context: context,
+          applicationName: 'HortaSmart',
+          applicationVersion: '1.0.0',
+          applicationIcon: const Icon(Icons.eco_rounded, color: CoresHortasmart.verde, size: 36),
+          children: const [Text('Protótipo de monitoramento e irrigação inteligente de hortas.')],
+        );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final telas = [
+      TelaPainel(
+        canteiros: _canteiros,
+        aoAbrirIrrigacao: () => setState(() => _indiceSelecionado = RotasHortasmart.irrigacao),
+        aoAbrirCanteiro: (canteiro) => setState(() {
+          _canteiroInicialIrrigacao = canteiro.id;
+          _indiceSelecionado = RotasHortasmart.irrigacao;
+        }),
+      ),
+      TelaIrrigacao(canteiros: _canteiros, aoAtualizarCanteiro: _atualizarCanteiro, canteiroInicialId: _canteiroInicialIrrigacao),
+      TelaHistorico(canteiros: _canteiros),
+      TelaConfiguracoes(
+        canteiros: _canteiros,
+        aoAdicionarCanteiro: _adicionarCanteiro,
+        aoAtualizarCanteiro: _atualizarCanteiro,
+        aoRemoverCanteiro: _removerCanteiro,
+      ),
+    ];
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Color(0xFF075C39),
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final telaAmpla = constraints.maxWidth >= 820;
+          return Scaffold(
+            body: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  if (telaAmpla)
+                    Container(
+                      width: constraints.maxWidth >= 1100 ? 230 : 86,
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          if (constraints.maxWidth >= 1100)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(17, 20, 12, 18),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(color: CoresHortasmart.verdeClaro, borderRadius: BorderRadius.circular(13)),
+                                    child: const Icon(Icons.eco_rounded, color: CoresHortasmart.verde, size: 25),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Expanded(
+                                    child: Text('HortaSmart', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: CoresHortasmart.texto)),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 12),
+                          const Divider(height: 1, color: Color(0xFFE8EEE9)),
+                          Expanded(
+                            child: NavigationRail(
+                              selectedIndex: _indiceSelecionado,
+                              onDestinationSelected: (indice) => setState(() => _indiceSelecionado = indice),
+                              extended: constraints.maxWidth >= 1100,
+                              minWidth: 72,
+                              minExtendedWidth: 230,
+                              labelType: NavigationRailLabelType.none,
+                              groupAlignment: -0.95,
+                              backgroundColor: Colors.white,
+                              indicatorColor: CoresHortasmart.verdeClaro,
+                              destinations: const [
+                                NavigationRailDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: Icon(Icons.grid_view_rounded), label: Text('Painel')),
+                                NavigationRailDestination(icon: Icon(Icons.water_drop_outlined), selectedIcon: Icon(Icons.water_drop_rounded), label: Text('Irrigação')),
+                                NavigationRailDestination(icon: Icon(Icons.insert_chart_outlined_rounded), selectedIcon: Icon(Icons.insert_chart_rounded), label: Text('Histórico')),
+                                NavigationRailDestination(icon: Icon(Icons.tune_rounded), selectedIcon: Icon(Icons.tune_rounded), label: Text('Configurações')),
+                              ],
+                            ),
+                          ),
+                          if (constraints.maxWidth >= 1100)
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(children: [Icon(Icons.wifi_rounded, size: 17, color: CoresHortasmart.verde), SizedBox(width: 7), Text('Modo de demonstração', style: TextStyle(fontSize: 11, color: CoresHortasmart.textoSecundario))]),
+                            ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        CabecalhoAplicativo(
+                          indiceSelecionado: _indiceSelecionado,
+                          aoVoltarPainel: () => setState(() => _indiceSelecionado = RotasHortasmart.painel),
+                          aoAcionar: _acaoCabecalho,
+                        ),
+                        Expanded(
+                          child: IndexedStack(index: _indiceSelecionado, children: telas),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            bottomNavigationBar: telaAmpla
+                ? null
+                : NavigationBar(
+                    selectedIndex: _indiceSelecionado,
+                    onDestinationSelected: (indice) => setState(() => _indiceSelecionado = indice),
+                    destinations: const [
+                      NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: Icon(Icons.grid_view_rounded), label: 'Painel'),
+                      NavigationDestination(icon: Icon(Icons.water_drop_outlined), selectedIcon: Icon(Icons.water_drop_rounded), label: 'Irrigação'),
+                      NavigationDestination(icon: Icon(Icons.insert_chart_outlined_rounded), selectedIcon: Icon(Icons.insert_chart_rounded), label: 'Histórico'),
+                      NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: Icon(Icons.tune_rounded), label: 'Configurações'),
+                    ],
+                  ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+C:\Users\sarar\hortasmart>(
+echo..  
+ echo ==================================================  
+ echo ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\tema.dart  
+ echo ==================================================  
+ type "C:\Users\sarar\hortasmart\lib\principal\tema.dart" 
+) 
+.
+==================================================
+ARQUIVO: C:\Users\sarar\hortasmart\lib\principal\tema.dart
+==================================================
+import 'package:flutter/material.dart';
+
+abstract final class TemaHortasmart {
+  static const verde = Color(0xFF087B4B);
+  static const verdeEscuro = Color(0xFF075C39);
+  static const verdeClaro = Color(0xFFE6F4E9);
+  static const fundo = Color(0xFFF4F7F5);
+  static const texto = Color(0xFF172A20);
+  static const textoSecundario = Color(0xFF718078);
+  static const amarelo = Color(0xFFE5A317);
+  static const amareloClaro = Color(0xFFFFF4D9);
+  static const vermelho = Color(0xFFE54855);
+  static const vermelhoClaro = Color(0xFFFFE9E8);
+  static const azul = Color(0xFF2583CA);
+
+  static ThemeData get claro {
+    final esquema = ColorScheme.fromSeed(
+      seedColor: verde,
+      brightness: Brightness.light,
+      surface: Colors.white,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: esquema.copyWith(primary: verde, secondary: const Color(0xFF62A66D)),
+      scaffoldBackgroundColor: fundo,
+      fontFamily: 'Roboto',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: verdeEscuro,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(19)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFFF8FAF8),
+        labelStyle: const TextStyle(color: textoSecundario, fontSize: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE3EAE4))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: verde, width: 1.5)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: verde,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFFE4E9E5),
+          disabledForegroundColor: const Color(0xFF9AA69D),
+          padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 14),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: verde,
+          side: const BorderSide(color: Color(0xFFD9E4D9)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+        ),
+      ),
+      sliderTheme: const SliderThemeData(activeTrackColor: verde, thumbColor: verde, overlayColor: Color(0x22236744)),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 68,
+        backgroundColor: Colors.white,
+        indicatorColor: verdeClaro,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
+          fontSize: 10,
+          fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500,
+          color: states.contains(WidgetState.selected) ? verdeEscuro : textoSecundario,
+        )),
+      ),
+      navigationRailTheme: const NavigationRailThemeData(
+        selectedIconTheme: IconThemeData(color: verdeEscuro),
+        unselectedIconTheme: IconThemeData(color: textoSecundario),
+        selectedLabelTextStyle: TextStyle(color: verdeEscuro, fontWeight: FontWeight.w800, fontSize: 12),
+        unselectedLabelTextStyle: TextStyle(color: textoSecundario, fontWeight: FontWeight.w600, fontSize: 12),
+      ),
+    );
+  }
+}
