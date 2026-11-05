@@ -32,10 +32,6 @@ class _TelaHistoricoState extends State<TelaHistorico> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AvisoDemonstracao(
-              texto:
-                  'Histórico e consumo são exemplos visuais; os registros reais virão do Firebase após a integração.',
-            ),
             const SizedBox(height: 16),
             Row(
               children: [

@@ -553,10 +553,6 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AvisoDemonstracao(
-              texto:
-                  'Alterações ficam salvas somente enquanto esta prévia está aberta. O Firebase será integrado depois.',
-            ),
             const SizedBox(height: 13),
             Container(
               padding: const EdgeInsets.all(17),

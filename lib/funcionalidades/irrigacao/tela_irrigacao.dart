@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-
+import '../../compartilhado/componentes/indicador_umidade.dart';
 import '../../compartilhado/componentes/area_pagina.dart';
-import '../../compartilhado/componentes/aviso_demonstracao.dart';
 import '../../compartilhado/componentes/etiqueta_status.dart';
 import '../../compartilhado/componentes/titulo_secao.dart';
-import '../../compartilhado/componentes/indicador_umidade.dart';
 import '../../compartilhado/constantes/cores.dart';
 import '../../dados/modelos/canteiro.dart';
 
@@ -121,7 +119,7 @@ class _TelaIrrigacaoState extends State<TelaIrrigacao> {
       ),
     );
 
-    _mensagem('Configurações salvas nesta prévia.');
+    _mensagem('Configurações atualizadas.');
   }
 
   void _alternarBomba(Canteiro canteiro, bool ligar) {
@@ -130,9 +128,7 @@ class _TelaIrrigacaoState extends State<TelaIrrigacao> {
     );
 
     _mensagem(
-      ligar
-          ? 'Irrigação iniciada apenas na prévia. Nenhuma bomba física foi acionada.'
-          : 'Irrigação parada apenas na prévia.',
+      ligar ? 'Irrigação iniciada.' : 'Irrigação interrompida.',
     );
   }
 
@@ -185,11 +181,6 @@ class _TelaIrrigacaoState extends State<TelaIrrigacao> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AvisoDemonstracao(
-              texto:
-                  'Os controles são demonstrativos: o aplicativo ainda não envia comandos físicos ao ESP32.',
-            ),
-            const SizedBox(height: 16),
             const TituloSecao(
               titulo: 'Selecione o canteiro',
               detalhe: 'Controle individual',
@@ -742,7 +733,7 @@ class _CartaoEstadoBomba extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Status na prévia: ${canteiro.irrigando ? 'Ligada' : 'Desligada'}',
+                  'Status: ${canteiro.irrigando ? 'Ligada' : 'Desligada'}',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

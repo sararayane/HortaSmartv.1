@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../compartilhado/componentes/cabecalho_aplicativo.dart';
@@ -43,7 +41,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     _carregarFotosSalvas();
   }
 
-  // Lê o mapa de associações salvo no dispositivo.
+  // Lê o mapa de imagens salvo no navegador.
   Future<Map<String, String>> _lerMapaFotos() async {
     final preferencias = await SharedPreferences.getInstance();
 
@@ -62,7 +60,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     }
   }
 
-  // Salva o mapa de IDs e caminhos das imagens.
+  // Salva o mapa de imagens no armazenamento local.
   Future<void> _salvarMapaFotos(
     Map<String, String> fotos,
   ) async {
@@ -79,35 +77,17 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     try {
       final fotosSalvas = await _lerMapaFotos();
 
-      final canteirosAtualizados = <Canteiro>[];
+      final canteirosAtualizados = _canteiros.map((canteiro) {
+        final imagem = fotosSalvas[canteiro.id];
 
-      final fotosValidas = <String, String>{};
-
-      for (final canteiro in _canteiros) {
-        final caminho = fotosSalvas[canteiro.id];
-
-        if (caminho == null || caminho.isEmpty) {
-          canteirosAtualizados.add(canteiro);
-          continue;
+        if (imagem == null || imagem.isEmpty) {
+          return canteiro;
         }
 
-        final arquivo = File(caminho);
-
-        if (await arquivo.exists()) {
-          fotosValidas[canteiro.id] = caminho;
-
-          canteirosAtualizados.add(
-            canteiro.copiarCom(caminhoImagem: caminho),
-          );
-        } else {
-          canteirosAtualizados.add(canteiro);
-        }
-      }
-
-      // Remove associações de arquivos que não existem mais.
-      if (fotosValidas.length != fotosSalvas.length) {
-        await _salvarMapaFotos(fotosValidas);
-      }
+        return canteiro.copiarCom(
+          imagemBase64: imagem,
+        );
+      }).toList();
 
       if (!mounted) return;
 
@@ -129,6 +109,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     });
   }
 
+  // Seleciona uma imagem pelo navegador e salva em Base64.
   Future<void> _selecionarFoto(
     Canteiro canteiro,
     ImageSource origem,
@@ -136,52 +117,33 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     try {
       final XFile? imagem = await _seletorImagem.pickImage(
         source: origem,
-        imageQuality: 85,
-        maxWidth: 1600,
+        imageQuality: 65,
+        maxWidth: 1000,
       );
 
       if (imagem == null || !mounted) return;
 
-      final diretorio = await getApplicationDocumentsDirectory();
+      // Lê os bytes da imagem, compatível com Flutter Web.
+      final bytes = await imagem.readAsBytes();
 
-      final nomeSeguro = canteiro.id.replaceAll(
-        RegExp(r'[^a-zA-Z0-9_-]'),
-        '_',
-      );
+      // Converte a imagem para Base64.
+      final imagemBase64 = base64Encode(bytes);
 
-      final extensao = imagem.name.contains('.')
-          ? imagem.name.substring(imagem.name.lastIndexOf('.'))
-          : '.jpg';
-
-      final destino = '${diretorio.path}/canteiro_$nomeSeguro$extensao';
-
-      final arquivo = await File(imagem.path).copy(destino);
-
-      // Atualiza o mapa de fotos usando o ID do canteiro.
+      // Atualiza o mapa de imagens pelo ID do canteiro.
       final fotosSalvas = await _lerMapaFotos();
 
-      fotosSalvas[canteiro.id] = arquivo.path;
+      fotosSalvas[canteiro.id] = imagemBase64;
 
       await _salvarMapaFotos(fotosSalvas);
 
       if (!mounted) return;
 
-      final caminhoAntigo = canteiro.caminhoImagem;
-
+      // Atualiza somente o canteiro selecionado.
       _atualizarCanteiro(
-        canteiro.copiarCom(caminhoImagem: arquivo.path),
+        canteiro.copiarCom(
+          imagemBase64: imagemBase64,
+        ),
       );
-
-      // Remove a imagem antiga caso tenha sido substituída.
-      if (caminhoAntigo != null && caminhoAntigo != arquivo.path) {
-        final arquivoAntigo = File(caminhoAntigo);
-
-        if (await arquivoAntigo.exists()) {
-          await arquivoAntigo.delete();
-        }
-      }
-
-      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -201,30 +163,21 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     }
   }
 
+  // Remove a imagem do canteiro.
   Future<void> _removerFoto(Canteiro canteiro) async {
     try {
-      final caminho = canteiro.caminhoImagem;
-
-      // Primeiro remove a associação salva.
       final fotosSalvas = await _lerMapaFotos();
 
       fotosSalvas.remove(canteiro.id);
 
       await _salvarMapaFotos(fotosSalvas);
 
-      // Depois remove o arquivo físico.
-      if (caminho != null) {
-        final arquivo = File(caminho);
-
-        if (await arquivo.exists()) {
-          await arquivo.delete();
-        }
-      }
-
       if (!mounted) return;
 
       _atualizarCanteiro(
-        canteiro.copiarCom(removerImagem: true),
+        canteiro.copiarCom(
+          removerImagem: true,
+        ),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -285,7 +238,8 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                     _selecionarFoto(canteiro, ImageSource.gallery);
                   },
                 ),
-                if (canteiro.caminhoImagem != null)
+                if (canteiro.imagemBase64 != null &&
+                    canteiro.imagemBase64!.isNotEmpty)
                   ListTile(
                     leading: const Icon(
                       Icons.delete_outline,

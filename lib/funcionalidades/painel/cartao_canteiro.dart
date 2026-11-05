@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hortasmart/compartilhado/componentes/indicador_umidade.dart';
@@ -42,9 +42,9 @@ class CartaoCanteiro extends StatelessWidget {
     required double largura,
     required double altura,
   }) {
-    final caminhoImagem = canteiro.caminhoImagem;
+    final imagemBase64 = canteiro.imagemBase64;
 
-    final temImagem = caminhoImagem != null && caminhoImagem.isNotEmpty;
+    final temImagem = imagemBase64 != null && imagemBase64.isNotEmpty;
 
     return SizedBox(
       width: largura,
@@ -55,9 +55,10 @@ class CartaoCanteiro extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(17),
               child: temImagem
-                  ? Image.file(
-                      File(caminhoImagem),
+                  ? Image.memory(
+                      base64Decode(imagemBase64),
                       fit: BoxFit.cover,
+                      gaplessPlayback: true,
                       errorBuilder: (context, error, stackTrace) {
                         return _construirEmoji();
                       },
