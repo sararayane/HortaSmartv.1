@@ -5,11 +5,9 @@ import '../../dados/modelos/canteiro.dart';
 import '../../dados/modelos/previsao_tempo.dart';
 import '../../dados/servicos/servico_clima.dart';
 import '../../compartilhado/componentes/area_pagina.dart';
-import '../../compartilhado/componentes/aviso_demonstracao.dart';
 import '../../compartilhado/componentes/titulo_secao.dart';
 import '../../compartilhado/constantes/cores.dart';
 import 'cartao_canteiro.dart';
-import 'estado_conexao.dart';
 
 class TelaPainel extends StatelessWidget {
   const TelaPainel({
@@ -17,15 +15,16 @@ class TelaPainel extends StatelessWidget {
     required this.canteiros,
     required this.aoAbrirIrrigacao,
     required this.aoAbrirCanteiro,
+    required this.aoAlterarFoto,
   });
 
   final List<Canteiro> canteiros;
   final VoidCallback aoAbrirIrrigacao;
   final ValueChanged<Canteiro> aoAbrirCanteiro;
+  final ValueChanged<Canteiro> aoAlterarFoto;
 
   @override
   Widget build(BuildContext context) {
-    final conectados = canteiros.where((c) => c.conectado).length;
     final irrigando = canteiros.where((c) => c.irrigando).length;
     final criticos = canteiros.where((c) => c.umidadeAtual < 30).length;
 
@@ -34,16 +33,6 @@ class TelaPainel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AvisoDemonstracao(
-              texto:
-                  'Prévia visual: leituras e conexão ainda são dados demonstrativos.',
-            ),
-            const SizedBox(height: 13),
-            EstadoConexao(
-              dispositivosConectados: conectados,
-              totalDispositivos: canteiros.length,
-            ),
-            const SizedBox(height: 12),
             _CartaoClima(irrigando: irrigando),
             const SizedBox(height: 22),
             TituloSecao(
@@ -101,10 +90,15 @@ class TelaPainel extends StatelessWidget {
                       crossAxisSpacing: 11,
                       mainAxisExtent: 148,
                     ),
-                    itemBuilder: (context, indice) => CartaoCanteiro(
-                      canteiro: canteiros[indice],
-                      aoTocar: () => aoAbrirCanteiro(canteiros[indice]),
-                    ),
+                    itemBuilder: (context, indice) {
+                      final canteiro = canteiros[indice];
+
+                      return CartaoCanteiro(
+                        canteiro: canteiro,
+                        aoTocar: () => aoAbrirCanteiro(canteiro),
+                        aoAlterarFoto: () => aoAlterarFoto(canteiro),
+                      );
+                    },
                   );
                 },
               ),
@@ -115,7 +109,9 @@ class TelaPainel extends StatelessWidget {
                 aoAbrirIrrigacao: aoAbrirIrrigacao,
               )
             else
-              _CartaoAutomacao(aoAbrirIrrigacao: aoAbrirIrrigacao),
+              _CartaoAutomacao(
+                aoAbrirIrrigacao: aoAbrirIrrigacao,
+              ),
             const SizedBox(height: 24),
           ],
         ),
@@ -304,8 +300,6 @@ class _CartaoClimaState extends State<_CartaoClima> {
             ],
           ),
           const SizedBox(height: 13),
-
-          // Campo de cidade e botão de localização lado a lado.
           Row(
             children: [
               Expanded(
@@ -395,9 +389,7 @@ class _CartaoClimaState extends State<_CartaoClima> {
               ),
             ],
           ),
-
           const SizedBox(height: 15),
-
           if (ocupado)
             const Center(
               child: Padding(
@@ -598,7 +590,7 @@ class _CartaoClimaState extends State<_CartaoClima> {
                 Flexible(
                   child: Text(
                     '${widget.irrigando} '
-                    '${widget.irrigando == 1 ? 'irrigando' : 'irrigando'}',
+                    '${widget.irrigando == 1 ? 'canteiro irrigando' : 'canteiros irrigando'}',
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFD4E3EC),
@@ -627,7 +619,7 @@ class _CartaoClimaState extends State<_CartaoClima> {
       return Icons.grain_rounded;
     }
 
-    if (codigo >= 71 && codigo <= 77 || codigo == 85 || codigo == 86) {
+    if ((codigo >= 71 && codigo <= 77) || codigo == 85 || codigo == 86) {
       return Icons.ac_unit_rounded;
     }
 

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hortasmart/compartilhado/componentes/indicador_umidade.dart';
+
 import '../../dados/modelos/canteiro.dart';
 import '../../compartilhado/componentes/etiqueta_status.dart';
 import '../../compartilhado/constantes/cores.dart';
@@ -9,10 +12,12 @@ class CartaoCanteiro extends StatelessWidget {
     super.key,
     required this.canteiro,
     this.aoTocar,
+    this.aoAlterarFoto,
   });
 
   final Canteiro canteiro;
   final VoidCallback? aoTocar;
+  final VoidCallback? aoAlterarFoto;
 
   String get _emoji {
     switch (canteiro.cultura.toLowerCase()) {
@@ -31,6 +36,70 @@ class CartaoCanteiro extends StatelessWidget {
       default:
         return '🌱';
     }
+  }
+
+  Widget _construirImagem({
+    required double largura,
+    required double altura,
+  }) {
+    final caminhoImagem = canteiro.caminhoImagem;
+
+    final temImagem = caminhoImagem != null && caminhoImagem.isNotEmpty;
+
+    return SizedBox(
+      width: largura,
+      height: altura,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(17),
+              child: temImagem
+                  ? Image.file(
+                      File(caminhoImagem),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _construirEmoji();
+                      },
+                    )
+                  : _construirEmoji(),
+            ),
+          ),
+          Positioned(
+            right: 4,
+            bottom: 4,
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              elevation: 2,
+              child: InkWell(
+                onTap: aoAlterarFoto,
+                customBorder: const CircleBorder(),
+                child: const Padding(
+                  padding: EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.camera_alt_rounded,
+                    size: 15,
+                    color: CoresHortasmart.verde,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _construirEmoji() {
+    return Container(
+      alignment: Alignment.center,
+      color: const Color(0xFFEAF5E9),
+      child: Text(
+        _emoji,
+        style: const TextStyle(fontSize: 35),
+      ),
+    );
   }
 
   @override
@@ -55,20 +124,9 @@ class CartaoCanteiro extends StatelessWidget {
             builder: (context, constraints) {
               final estreito = constraints.maxWidth < 280;
 
-              final imagem = Container(
-                width: estreito ? 48.0 : 61.0,
-                height: estreito ? 58.0 : 70.0,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF5E9),
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: Text(
-                  _emoji,
-                  style: TextStyle(
-                    fontSize: estreito ? 29 : 35,
-                  ),
-                ),
+              final imagem = _construirImagem(
+                largura: estreito ? 48 : 61,
+                altura: estreito ? 58 : 70,
               );
 
               final conteudo = Expanded(
@@ -109,8 +167,6 @@ class CartaoCanteiro extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-
-                    // Umidade e status adaptáveis.
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 7,
@@ -140,9 +196,7 @@ class CartaoCanteiro extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 9),
-
                     ClipRRect(
                       borderRadius: BorderRadius.circular(99),
                       child: LinearProgressIndicator(
@@ -154,9 +208,7 @@ class CartaoCanteiro extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 7),
-
                     Wrap(
                       alignment: WrapAlignment.spaceBetween,
                       crossAxisAlignment: WrapCrossAlignment.center,

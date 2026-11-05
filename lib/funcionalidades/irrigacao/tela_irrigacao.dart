@@ -196,7 +196,8 @@ class _TelaIrrigacaoState extends State<TelaIrrigacao> {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: canteiro.id,
+              key: ValueKey(canteiro.id),
+              initialValue: canteiro.id,
               isExpanded: true,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.grass_rounded),
@@ -549,7 +550,8 @@ class _CartaoModoMeta extends StatelessWidget {
           if (automatico) ...[
             const SizedBox(height: 18),
             DropdownButtonFormField<int>(
-              value: _intervaloValido(intervaloTemporario),
+              key: ValueKey(_intervaloValido(intervaloTemporario)),
+              initialValue: _intervaloValido(intervaloTemporario),
               isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Verificar a cada',
@@ -577,6 +579,7 @@ class _CartaoModoMeta extends StatelessWidget {
 
   int _intervaloValido(int intervalo) {
     const intervalos = [1, 2, 4, 6, 8, 12, 24];
+
     return intervalos.contains(intervalo) ? intervalo : 4;
   }
 }

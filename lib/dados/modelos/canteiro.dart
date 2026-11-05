@@ -14,6 +14,7 @@ class Canteiro {
     required this.valorSeco,
     required this.valorMolhado,
     this.caminhoImagem,
+    this.imagemBase64,
   });
 
   final String id;
@@ -28,8 +29,11 @@ class Canteiro {
   final int valorSeco;
   final int valorMolhado;
 
-  // Caminho da foto personalizada do canteiro.
+  // Imagem armazenada como arquivo no Android.
   final String? caminhoImagem;
+
+  // Imagem armazenada em Base64 no Chrome.
+  final String? imagemBase64;
 
   Canteiro copiarCom({
     String? nome,
@@ -43,6 +47,7 @@ class Canteiro {
     int? valorSeco,
     int? valorMolhado,
     String? caminhoImagem,
+    String? imagemBase64,
     bool removerImagem = false,
   }) {
     return Canteiro(
@@ -58,6 +63,7 @@ class Canteiro {
       valorSeco: valorSeco ?? this.valorSeco,
       valorMolhado: valorMolhado ?? this.valorMolhado,
       caminhoImagem: removerImagem ? null : caminhoImagem ?? this.caminhoImagem,
+      imagemBase64: removerImagem ? null : imagemBase64 ?? this.imagemBase64,
     );
   }
 }
