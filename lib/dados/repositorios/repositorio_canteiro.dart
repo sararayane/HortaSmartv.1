@@ -1,7 +1,74 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../modelos/canteiro.dart';
 
-/// Dados locais de demonstração para desenvolver a interface antes da integração.
+/// Repositório responsável por armazenar e consultar os canteiros
+/// de cada usuário no Firebase Firestore.
 class RepositorioCanteiro {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _autenticacao = FirebaseAuth.instance;
+
+  /// Retorna a coleção de canteiros do usuário autenticado.
+  CollectionReference<Map<String, dynamic>> get _colecao {
+    final usuario = _autenticacao.currentUser;
+
+    if (usuario == null) {
+      throw StateError(
+        'É necessário estar autenticado para acessar os canteiros.',
+      );
+    }
+
+    return _firestore
+        .collection('usuarios')
+        .doc(usuario.uid)
+        .collection('canteiros');
+  }
+
+  /// Acompanha os canteiros em tempo real.
+  Stream<List<Canteiro>> acompanharCanteiros() {
+    return _colecao.snapshots().map((snapshot) {
+      return snapshot.docs.map((documento) {
+        return Canteiro.fromMap(
+          id: documento.id,
+          dados: documento.data(),
+        );
+      }).toList();
+    });
+  }
+
+  /// Busca todos os canteiros cadastrados pelo usuário.
+  Future<List<Canteiro>> buscarCanteiros() async {
+    final snapshot = await _colecao.get();
+
+    return snapshot.docs.map((documento) {
+      return Canteiro.fromMap(
+        id: documento.id,
+        dados: documento.data(),
+      );
+    }).toList();
+  }
+
+  /// Salva um novo canteiro no Firestore.
+  Future<void> salvar(Canteiro canteiro) async {
+    await _colecao.doc(canteiro.id).set(canteiro.toMap());
+  }
+
+  /// Atualiza os dados de um canteiro existente.
+  Future<void> atualizar(Canteiro canteiro) async {
+    await _colecao.doc(canteiro.id).set(
+          canteiro.toMap(),
+          SetOptions(merge: true),
+        );
+  }
+
+  /// Exclui um canteiro do Firestore.
+  Future<void> excluir(String idCanteiro) async {
+    await _colecao.doc(idCanteiro).delete();
+  }
+
+  /// Dados locais de demonstração.
+  /// Mantidos temporariamente para preservar as telas existentes.
   static List<Canteiro> criarDadosDemonstracao() => const [
         Canteiro(
           id: 'canteiro-01',
@@ -28,32 +95,6 @@ class RepositorioCanteiro {
           intervaloHoras: 6,
           valorSeco: 3050,
           valorMolhado: 1350,
-        ),
-        Canteiro(
-          id: 'canteiro-03',
-          nome: 'Canteiro 3',
-          cultura: 'Cenoura',
-          umidadeAtual: 28,
-          metaUmidade: 50,
-          conectado: true,
-          irrigando: false,
-          modo: ModoIrrigacao.automatico,
-          intervaloHoras: 6,
-          valorSeco: 2980,
-          valorMolhado: 1380,
-        ),
-        Canteiro(
-          id: 'canteiro-04',
-          nome: 'Canteiro 4',
-          cultura: 'Rúcula',
-          umidadeAtual: 76,
-          metaUmidade: 60,
-          conectado: true,
-          irrigando: false,
-          modo: ModoIrrigacao.automatico,
-          intervaloHoras: 4,
-          valorSeco: 3020,
-          valorMolhado: 1420,
         ),
       ];
 }

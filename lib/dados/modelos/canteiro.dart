@@ -35,6 +35,61 @@ class Canteiro {
   // Imagem armazenada em Base64 no Chrome.
   final String? imagemBase64;
 
+  /// Converte os dados recebidos do Firestore em um Canteiro.
+  factory Canteiro.fromMap({
+    required String id,
+    required Map<String, dynamic> dados,
+  }) {
+    return Canteiro(
+      id: id,
+      nome: dados['nome']?.toString() ?? 'Novo canteiro',
+      cultura: dados['cultura']?.toString() ?? '',
+      umidadeAtual: _converterDouble(dados['umidadeAtual'], 0),
+      metaUmidade: _converterDouble(dados['metaUmidade'], 65),
+      conectado: dados['conectado'] == true,
+      irrigando: dados['irrigando'] == true,
+      modo: ModoIrrigacao.values.firstWhere(
+        (modo) => modo.name == dados['modo'],
+        orElse: () => ModoIrrigacao.automatico,
+      ),
+      intervaloHoras: _converterInt(dados['intervaloHoras'], 4),
+      valorSeco: _converterInt(dados['valorSeco'], 0),
+      valorMolhado: _converterInt(dados['valorMolhado'], 4095),
+    );
+  }
+
+  /// Converte o Canteiro em um mapa para salvar no Firestore.
+  Map<String, dynamic> toMap() {
+    return {
+      'nome': nome,
+      'cultura': cultura,
+      'umidadeAtual': umidadeAtual,
+      'metaUmidade': metaUmidade,
+      'conectado': conectado,
+      'irrigando': irrigando,
+      'modo': modo.name,
+      'intervaloHoras': intervaloHoras,
+      'valorSeco': valorSeco,
+      'valorMolhado': valorMolhado,
+    };
+  }
+
+  static double _converterDouble(dynamic valor, double padrao) {
+    if (valor is num) {
+      return valor.toDouble();
+    }
+
+    return double.tryParse(valor?.toString() ?? '') ?? padrao;
+  }
+
+  static int _converterInt(dynamic valor, int padrao) {
+    if (valor is num) {
+      return valor.toInt();
+    }
+
+    return int.tryParse(valor?.toString() ?? '') ?? padrao;
+  }
+
   Canteiro copiarCom({
     String? nome,
     String? cultura,

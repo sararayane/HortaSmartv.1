@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ServicoAutenticacao {
   final FirebaseAuth _autenticacao = FirebaseAuth.instance;
+  final FirebaseFirestore _banco = FirebaseFirestore.instance;
 
   User? get usuarioAtual => _autenticacao.currentUser;
 
@@ -63,6 +65,32 @@ class ServicoAutenticacao {
         message: 'Confirme seu e-mail antes de entrar.',
       );
     }
+
+    // Cria ou atualiza o documento do usuário no Firestore.
+    await _criarOuAtualizarUsuario(usuarioAtualizado);
+  }
+
+  // Criar ou atualizar o perfil no Firestore
+  Future<void> _criarOuAtualizarUsuario(User usuario) async {
+    final documento = _banco.collection('usuarios').doc(usuario.uid);
+
+    final consulta = await documento.get();
+
+    final dados = <String, dynamic>{
+      'nome': usuario.displayName ?? '',
+      'email': usuario.email ?? '',
+      'ativo': true,
+      'ultimoAcesso': FieldValue.serverTimestamp(),
+    };
+
+    if (!consulta.exists) {
+      dados['criadoEm'] = FieldValue.serverTimestamp();
+    }
+
+    await documento.set(
+      dados,
+      SetOptions(merge: true),
+    );
   }
 
   // Recuperação de senha

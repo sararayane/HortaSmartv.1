@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -28,20 +29,99 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
   int _indiceSelecionado = RotasHortasmart.painel;
   String? _canteiroInicialIrrigacao;
 
-  late List<Canteiro> _canteiros;
+  List<Canteiro> _canteiros = RepositorioCanteiro.criarDadosDemonstracao();
 
+  final RepositorioCanteiro _repositorio = RepositorioCanteiro();
   final ImagePicker _seletorImagem = ImagePicker();
+
+  StreamSubscription<List<Canteiro>>? _assinaturaCanteiros;
+
+  Map<String, String> _fotosSalvas = {};
+
+  bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
-
-    _canteiros = RepositorioCanteiro.criarDadosDemonstracao();
-
-    _carregarFotosSalvas();
+    _inicializarCanteiros();
   }
 
-  // Lê o mapa de imagens salvo no navegador.
+  @override
+  void dispose() {
+    _assinaturaCanteiros?.cancel();
+    super.dispose();
+  }
+
+  /// Inicializa os dados e acompanha as alterações do Firestore.
+  Future<void> _inicializarCanteiros() async {
+    try {
+      _fotosSalvas = await _lerMapaFotos();
+
+      final existentes = await _repositorio.buscarCanteiros();
+
+      // Se o usuário ainda não possui canteiros, cria os dois
+      // registros iniciais de demonstração.
+      if (existentes.isEmpty) {
+        final demonstracao = RepositorioCanteiro.criarDadosDemonstracao();
+
+        for (final canteiro in demonstracao) {
+          await _repositorio.salvar(canteiro);
+        }
+      }
+
+      if (!mounted) return;
+
+      _assinaturaCanteiros = _repositorio.acompanharCanteiros().listen(
+        (lista) {
+          final canteirosComFotos = lista.map((canteiro) {
+            final imagem = _fotosSalvas[canteiro.id];
+
+            if (imagem == null || imagem.isEmpty) {
+              return canteiro;
+            }
+
+            return canteiro.copiarCom(
+              imagemBase64: imagem,
+            );
+          }).toList();
+
+          if (!mounted) return;
+
+          setState(() {
+            _canteiros = canteirosComFotos;
+            _carregando = false;
+          });
+        },
+        onError: (Object erro) {
+          debugPrint('Erro ao acompanhar canteiros: $erro');
+
+          if (!mounted) return;
+
+          setState(() {
+            _carregando = false;
+          });
+
+          _mostrarMensagem(
+            'Não foi possível carregar os canteiros do Firebase.',
+          );
+        },
+      );
+    } catch (erro) {
+      debugPrint('Erro ao inicializar canteiros: $erro');
+
+      if (!mounted) return;
+
+      setState(() {
+        _carregando = false;
+      });
+
+      _mostrarMensagem(
+        'Erro ao conectar aos canteiros. Verifique sua conexão e as regras do Firestore.',
+      );
+    }
+  }
+
+  /// Lê o mapa de imagens salvo no navegador.
   Future<Map<String, String>> _lerMapaFotos() async {
     final preferencias = await SharedPreferences.getInstance();
 
@@ -53,14 +133,13 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
     try {
       final decodificado = jsonDecode(conteudo);
-
       return Map<String, String>.from(decodificado);
     } catch (_) {
       return {};
     }
   }
 
-  // Salva o mapa de imagens no armazenamento local.
+  /// Salva o mapa de imagens no armazenamento local.
   Future<void> _salvarMapaFotos(
     Map<String, String> fotos,
   ) async {
@@ -72,44 +151,42 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
-  // Recupera as imagens quando o aplicativo é aberto.
-  Future<void> _carregarFotosSalvas() async {
-    try {
-      final fotosSalvas = await _lerMapaFotos();
+  void _mostrarMensagem(String mensagem) {
+    if (!mounted) return;
 
-      final canteirosAtualizados = _canteiros.map((canteiro) {
-        final imagem = fotosSalvas[canteiro.id];
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
-        if (imagem == null || imagem.isEmpty) {
-          return canteiro;
-        }
-
-        return canteiro.copiarCom(
-          imagemBase64: imagem,
-        );
+  /// Atualiza um canteiro localmente e no Firestore.
+  void _atualizarCanteiro(Canteiro atualizado) {
+    setState(() {
+      _canteiros = _canteiros.map((canteiro) {
+        return canteiro.id == atualizado.id ? atualizado : canteiro;
       }).toList();
+    });
 
-      if (!mounted) return;
+    _salvarCanteiroNaNuvem(atualizado);
+  }
 
-      setState(() {
-        _canteiros = canteirosAtualizados;
-      });
+  Future<void> _salvarCanteiroNaNuvem(
+    Canteiro canteiro,
+  ) async {
+    try {
+      await _repositorio.atualizar(canteiro);
     } catch (erro) {
-      debugPrint('Erro ao recuperar fotos: $erro');
+      debugPrint('Erro ao atualizar canteiro: $erro');
+      _mostrarMensagem(
+        'Não foi possível salvar as alterações na nuvem.',
+      );
     }
   }
 
-  void _atualizarCanteiro(Canteiro atualizado) {
-    setState(() {
-      _canteiros = _canteiros
-          .map(
-            (canteiro) => canteiro.id == atualizado.id ? atualizado : canteiro,
-          )
-          .toList();
-    });
-  }
-
-  // Seleciona uma imagem pelo navegador e salva em Base64.
+  /// Seleciona uma imagem e salva em Base64 no armazenamento local.
   Future<void> _selecionarFoto(
     Canteiro canteiro,
     ImageSource origem,
@@ -123,54 +200,37 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
 
       if (imagem == null || !mounted) return;
 
-      // Lê os bytes da imagem, compatível com Flutter Web.
       final bytes = await imagem.readAsBytes();
-
-      // Converte a imagem para Base64.
       final imagemBase64 = base64Encode(bytes);
 
-      // Atualiza o mapa de imagens pelo ID do canteiro.
-      final fotosSalvas = await _lerMapaFotos();
+      _fotosSalvas[canteiro.id] = imagemBase64;
 
-      fotosSalvas[canteiro.id] = imagemBase64;
-
-      await _salvarMapaFotos(fotosSalvas);
+      await _salvarMapaFotos(_fotosSalvas);
 
       if (!mounted) return;
 
-      // Atualiza somente o canteiro selecionado.
       _atualizarCanteiro(
         canteiro.copiarCom(
           imagemBase64: imagemBase64,
         ),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Foto do canteiro atualizada!'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _mostrarMensagem('Foto do canteiro atualizada!');
     } catch (erro) {
-      if (!mounted) return;
+      debugPrint('Erro ao selecionar imagem: $erro');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Não foi possível selecionar a imagem: $erro'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _mostrarMensagem(
+        'Não foi possível selecionar a imagem.',
       );
     }
   }
 
-  // Remove a imagem do canteiro.
+  /// Remove a imagem do canteiro.
   Future<void> _removerFoto(Canteiro canteiro) async {
     try {
-      final fotosSalvas = await _lerMapaFotos();
+      _fotosSalvas.remove(canteiro.id);
 
-      fotosSalvas.remove(canteiro.id);
-
-      await _salvarMapaFotos(fotosSalvas);
+      await _salvarMapaFotos(_fotosSalvas);
 
       if (!mounted) return;
 
@@ -180,20 +240,12 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
         ),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Foto removida com sucesso.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _mostrarMensagem('Foto removida com sucesso.');
     } catch (erro) {
-      if (!mounted) return;
+      debugPrint('Erro ao remover imagem: $erro');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Não foi possível remover a foto: $erro'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _mostrarMensagem(
+        'Não foi possível remover a foto.',
       );
     }
   }
@@ -259,16 +311,47 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
     );
   }
 
+  /// Adiciona um canteiro ao Firestore.
   void _adicionarCanteiro(Canteiro novo) {
     setState(() {
       _canteiros = [..._canteiros, novo];
     });
+
+    _salvarNovoCanteiro(novo);
   }
 
+  Future<void> _salvarNovoCanteiro(Canteiro novo) async {
+    try {
+      await _repositorio.salvar(novo);
+    } catch (erro) {
+      debugPrint('Erro ao adicionar canteiro: $erro');
+      _mostrarMensagem(
+        'Não foi possível cadastrar o canteiro na nuvem.',
+      );
+    }
+  }
+
+  /// Remove um canteiro do Firestore.
   void _removerCanteiro(String id) {
     setState(() {
       _canteiros = _canteiros.where((canteiro) => canteiro.id != id).toList();
     });
+
+    _excluirCanteiroNaNuvem(id);
+  }
+
+  Future<void> _excluirCanteiroNaNuvem(String id) async {
+    try {
+      await _repositorio.excluir(id);
+
+      _fotosSalvas.remove(id);
+      await _salvarMapaFotos(_fotosSalvas);
+    } catch (erro) {
+      debugPrint('Erro ao excluir canteiro: $erro');
+      _mostrarMensagem(
+        'Não foi possível excluir o canteiro da nuvem.',
+      );
+    }
   }
 
   void _acaoCabecalho() {
@@ -485,10 +568,14 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
                           aoAcionar: _acaoCabecalho,
                         ),
                         Expanded(
-                          child: IndexedStack(
-                            index: _indiceSelecionado,
-                            children: telas,
-                          ),
+                          child: _carregando
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : IndexedStack(
+                                  index: _indiceSelecionado,
+                                  children: telas,
+                                ),
                         ),
                       ],
                     ),

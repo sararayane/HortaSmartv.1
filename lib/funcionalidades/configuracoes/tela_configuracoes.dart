@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../compartilhado/componentes/area_pagina.dart';
 import '../../compartilhado/componentes/indicador_umidade.dart';
 import '../../compartilhado/componentes/titulo_secao.dart';
 import '../../compartilhado/constantes/cores.dart';
 import '../../dados/modelos/canteiro.dart';
+import 'cartao_perfil.dart';
 import 'formulario_canteiro.dart';
 import 'tela_calibracao.dart';
 
@@ -552,6 +554,8 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 13),
+
+            // Banner de dispositivos
             Container(
               padding: const EdgeInsets.all(17),
               decoration: BoxDecoration(
@@ -609,9 +613,15 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                 ],
               ),
             ),
+
+            // Perfil do usuário
+            const SizedBox(height: 20),
+            const CartaoPerfil(),
+
             const SizedBox(height: 22),
             const TituloSecao(titulo: 'Configurações do sistema'),
             const SizedBox(height: 11),
+
             LayoutBuilder(
               builder: (context, constraints) {
                 final colunas = constraints.maxWidth >= 760 ? 2 : 1;
@@ -632,7 +642,9 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                 );
               },
             ),
+
             const SizedBox(height: 23),
+
             Row(
               key: _chaveCanteiros,
               children: [
@@ -646,7 +658,9 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                 ),
               ],
             ),
+
             const SizedBox(height: 11),
+
             if (widget.canteiros.isEmpty)
               Container(
                 width: double.infinity,
@@ -672,7 +686,9 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   ),
                 ),
               ),
+
             const SizedBox(height: 12),
+
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -702,6 +718,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
           ],
         ),
