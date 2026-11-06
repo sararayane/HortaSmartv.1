@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import '../../compartilhado/componentes/area_pagina.dart';
-import '../../compartilhado/componentes/aviso_demonstracao.dart';
 import '../../compartilhado/componentes/etiqueta_status.dart';
 import '../../compartilhado/componentes/indicador_umidade.dart';
 import '../../compartilhado/componentes/titulo_secao.dart';
