@@ -29,8 +29,6 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
   int _indiceSelecionado = RotasHortasmart.painel;
   String? _canteiroInicialIrrigacao;
 
-  // Cada usuário começa com sua lista vazia.
-  // Os canteiros serão carregados diretamente do Firestore.
   List<Canteiro> _canteiros = [];
 
   final RepositorioCanteiro _repositorio = RepositorioCanteiro();
@@ -60,7 +58,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
       _fotosSalvas = await _lerMapaFotos();
 
       // Não cria dados de demonstração.
-      // Se não houver documentos, a lista permanece vazia.
+      // Os canteiros são carregados diretamente do Firestore.
       _assinaturaCanteiros = _repositorio.acompanharCanteiros().listen(
         (lista) {
           final canteirosComFotos = lista.map((canteiro) {
@@ -434,6 +432,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
           });
         },
         aoAlterarFoto: _abrirOpcoesFoto,
+        aoAdicionarCanteiro: _adicionarCanteiro,
       ),
       TelaIrrigacao(
         canteiros: _canteiros,

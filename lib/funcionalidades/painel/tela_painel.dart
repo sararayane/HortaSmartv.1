@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -7,6 +9,7 @@ import '../../dados/servicos/servico_clima.dart';
 import '../../compartilhado/componentes/area_pagina.dart';
 import '../../compartilhado/componentes/titulo_secao.dart';
 import '../../compartilhado/constantes/cores.dart';
+import '../configuracoes/formulario_canteiro.dart';
 import 'cartao_canteiro.dart';
 
 class TelaPainel extends StatelessWidget {
@@ -16,17 +19,40 @@ class TelaPainel extends StatelessWidget {
     required this.aoAbrirIrrigacao,
     required this.aoAbrirCanteiro,
     required this.aoAlterarFoto,
+    required this.aoAdicionarCanteiro,
   });
 
   final List<Canteiro> canteiros;
   final VoidCallback aoAbrirIrrigacao;
   final ValueChanged<Canteiro> aoAbrirCanteiro;
   final ValueChanged<Canteiro> aoAlterarFoto;
+  final ValueChanged<Canteiro> aoAdicionarCanteiro;
+
+  Future<void> _abrirFormularioCanteiro(BuildContext context) async {
+    final novoCanteiro = await showDialog<Canteiro>(
+      context: context,
+      builder: (_) => const FormularioCanteiro(),
+    );
+
+    if (novoCanteiro == null || !context.mounted) return;
+
+    aoAdicionarCanteiro(novoCanteiro);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final irrigando = canteiros.where((c) => c.irrigando).length;
-    final criticos = canteiros.where((c) => c.umidadeAtual < 30).length;
+    // Oculta os dois registros antigos de demonstração apenas no painel.
+    // Eles continuam armazenados no Firebase.
+    final canteirosDoUsuario = canteiros.where((canteiro) {
+      return canteiro.id != 'canteiro-01' && canteiro.id != 'canteiro-02';
+    }).toList();
+
+    final irrigando =
+        canteirosDoUsuario.where((canteiro) => canteiro.irrigando).length;
+
+    final criticos = canteirosDoUsuario
+        .where((canteiro) => canteiro.umidadeAtual < 30)
+        .length;
 
     return AreaPagina(
       child: SingleChildScrollView(
@@ -37,71 +63,42 @@ class TelaPainel extends StatelessWidget {
             const SizedBox(height: 22),
             TituloSecao(
               titulo: 'Canteiros da plantação',
-              detalhe: '${canteiros.length} cadastrados',
+              detalhe: '${canteirosDoUsuario.length} cadastrados',
             ),
             const SizedBox(height: 12),
-            if (canteiros.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(26),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Column(
-                  children: [
-                    Icon(
-                      Icons.grass_rounded,
-                      size: 38,
-                      color: CoresHortasmart.textoSecundario,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Nenhum canteiro cadastrado',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: CoresHortasmart.texto,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Abra Configurações para adicionar seu primeiro canteiro.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: CoresHortasmart.textoSecundario,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final colunas = constraints.maxWidth >= 760 ? 2 : 1;
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final colunas = constraints.maxWidth >= 760 ? 2 : 1;
 
-                  return GridView.builder(
-                    itemCount: canteiros.length,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: colunas,
-                      mainAxisSpacing: 11,
-                      crossAxisSpacing: 11,
-                      mainAxisExtent: 148,
-                    ),
-                    itemBuilder: (context, indice) {
-                      final canteiro = canteiros[indice];
-
-                      return CartaoCanteiro(
-                        canteiro: canteiro,
-                        aoTocar: () => aoAbrirCanteiro(canteiro),
-                        aoAlterarFoto: () => aoAlterarFoto(canteiro),
+                return GridView.builder(
+                  itemCount: canteirosDoUsuario.length + 1,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: colunas,
+                    mainAxisSpacing: 11,
+                    crossAxisSpacing: 11,
+                    mainAxisExtent: 148,
+                  ),
+                  itemBuilder: (context, indice) {
+                    // O último cartão é sempre o botão de adicionar.
+                    if (indice == canteirosDoUsuario.length) {
+                      return _CartaoAdicionarCanteiro(
+                        aoTocar: () => _abrirFormularioCanteiro(context),
                       );
-                    },
-                  );
-                },
-              ),
+                    }
+
+                    final canteiro = canteirosDoUsuario[indice];
+
+                    return CartaoCanteiro(
+                      canteiro: canteiro,
+                      aoTocar: () => aoAbrirCanteiro(canteiro),
+                      aoAlterarFoto: () => aoAlterarFoto(canteiro),
+                    );
+                  },
+                );
+              },
+            ),
             const SizedBox(height: 18),
             if (criticos > 0)
               _AvisoCritico(
@@ -120,6 +117,62 @@ class TelaPainel extends StatelessWidget {
   }
 }
 
+class _CartaoAdicionarCanteiro extends StatelessWidget {
+  const _CartaoAdicionarCanteiro({
+    required this.aoTocar,
+  });
+
+  final VoidCallback aoTocar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: aoTocar,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: CoresHortasmart.verde.withValues(alpha: 0.45),
+              width: 1.4,
+            ),
+          ),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_circle_outline_rounded,
+                size: 38,
+                color: CoresHortasmart.verde,
+              ),
+              SizedBox(height: 9),
+              Text(
+                'Adicionar canteiro',
+                style: TextStyle(
+                  color: CoresHortasmart.texto,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Cadastre uma nova plantação',
+                style: TextStyle(
+                  color: CoresHortasmart.textoSecundario,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _CartaoClima extends StatefulWidget {
   const _CartaoClima({required this.irrigando});
 
@@ -132,30 +185,88 @@ class _CartaoClima extends StatefulWidget {
 class _CartaoClimaState extends State<_CartaoClima> {
   final ServicoClima _servico = ServicoClima();
   final TextEditingController _cidadeController = TextEditingController();
+  final FocusNode _cidadeFocus = FocusNode();
+
+  Timer? _temporizadorPesquisa;
 
   PrevisaoTempo? _previsao;
+  List<CidadeClima> _sugestoes = [];
+
   bool _carregando = false;
   bool _buscandoLocalizacao = false;
-  String? _erro;
+  bool _pesquisandoCidades = false;
+  bool _mostrarSugestoes = false;
 
-  Future<void> _buscarClima() async {
-    FocusScope.of(context).unfocus();
+  String? _erro;
+  int _versaoPesquisa = 0;
+
+  void _aoDigitarCidade(String texto) {
+    _temporizadorPesquisa?.cancel();
+
+    final versao = ++_versaoPesquisa;
+
+    if (texto.trim().length < 2) {
+      setState(() {
+        _sugestoes = [];
+        _mostrarSugestoes = false;
+        _pesquisandoCidades = false;
+      });
+      return;
+    }
 
     setState(() {
+      _mostrarSugestoes = true;
+      _pesquisandoCidades = true;
+      _erro = null;
+    });
+
+    _temporizadorPesquisa = Timer(
+      const Duration(milliseconds: 450),
+      () => _pesquisarCidades(texto, versao),
+    );
+  }
+
+  Future<void> _pesquisarCidades(String texto, int versao) async {
+    try {
+      final resultados = await _servico.buscarCidades(texto);
+
+      if (!mounted || versao != _versaoPesquisa) return;
+
+      setState(() {
+        _sugestoes = resultados;
+        _pesquisandoCidades = false;
+      });
+    } catch (e) {
+      if (!mounted || versao != _versaoPesquisa) return;
+
+      setState(() {
+        _sugestoes = [];
+        _pesquisandoCidades = false;
+        _erro = _mensagemErro(e);
+      });
+    }
+  }
+
+  Future<void> _selecionarCidade(CidadeClima cidade) async {
+    FocusScope.of(context).unfocus();
+    _temporizadorPesquisa?.cancel();
+    _versaoPesquisa++;
+
+    setState(() {
+      _cidadeController.text = cidade.nome;
+      _mostrarSugestoes = false;
+      _sugestoes = [];
       _carregando = true;
       _erro = null;
     });
 
     try {
-      final resultado = await _servico.buscarPorCidade(
-        _cidadeController.text,
-      );
+      final resultado = await _servico.buscarPorCidadeSelecionada(cidade);
 
       if (!mounted) return;
 
       setState(() {
         _previsao = resultado;
-        _cidadeController.text = resultado.cidade;
       });
     } catch (e) {
       if (!mounted) return;
@@ -172,8 +283,12 @@ class _CartaoClimaState extends State<_CartaoClima> {
 
   Future<void> _buscarPelaLocalizacao() async {
     FocusScope.of(context).unfocus();
+    _temporizadorPesquisa?.cancel();
+    _versaoPesquisa++;
 
     setState(() {
+      _mostrarSugestoes = false;
+      _sugestoes = [];
       _buscandoLocalizacao = true;
       _erro = null;
     });
@@ -215,8 +330,6 @@ class _CartaoClimaState extends State<_CartaoClima> {
 
       if (!mounted) return;
 
-      setState(() => _carregando = true);
-
       final resultado = await _servico.buscarPorCoordenadas(
         latitude: posicao.latitude,
         longitude: posicao.longitude,
@@ -253,7 +366,9 @@ class _CartaoClimaState extends State<_CartaoClima> {
 
   @override
   void dispose() {
+    _temporizadorPesquisa?.cancel();
     _cidadeController.dispose();
+    _cidadeFocus.dispose();
     super.dispose();
   }
 
@@ -307,13 +422,14 @@ class _CartaoClimaState extends State<_CartaoClima> {
                   height: 46,
                   child: TextField(
                     controller: _cidadeController,
+                    focusNode: _cidadeFocus,
                     enabled: !ocupado,
+                    onChanged: _aoDigitarCidade,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
                     ),
                     textInputAction: TextInputAction.search,
-                    onSubmitted: (_) => _buscarClima(),
                     decoration: InputDecoration(
                       hintText: 'Digite uma cidade...',
                       hintStyle: const TextStyle(
@@ -325,15 +441,19 @@ class _CartaoClimaState extends State<_CartaoClima> {
                         color: Color(0xFFD4E3EC),
                         size: 19,
                       ),
-                      suffixIcon: IconButton(
-                        tooltip: 'Pesquisar cidade',
-                        onPressed: ocupado ? null : _buscarClima,
-                        icon: const Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 19,
-                        ),
-                      ),
+                      suffixIcon: _pesquisandoCidades
+                          ? const Padding(
+                              padding: EdgeInsets.all(13),
+                              child: SizedBox(
+                                width: 17,
+                                height: 17,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF83D7F4),
+                                ),
+                              ),
+                            )
+                          : null,
                       filled: true,
                       fillColor: const Color(0xFF263D4D),
                       contentPadding: const EdgeInsets.symmetric(
@@ -389,6 +509,108 @@ class _CartaoClimaState extends State<_CartaoClima> {
               ),
             ],
           ),
+          if (_mostrarSugestoes && !ocupado) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFF263D4D),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF3C5668)),
+              ),
+              child: _pesquisandoCidades
+                  ? const Padding(
+                      padding: EdgeInsets.all(13),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF83D7F4),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Buscando cidades...',
+                            style: TextStyle(
+                              color: Color(0xFFD4E3EC),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _sugestoes.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(13),
+                          child: Text(
+                            'Nenhuma cidade encontrada.',
+                            style: TextStyle(
+                              color: Color(0xFFD4E3EC),
+                              fontSize: 12,
+                            ),
+                          ),
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _sugestoes.map((cidade) {
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: ocupado
+                                  ? null
+                                  : () => _selecionarCidade(cidade),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 11,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on_outlined,
+                                      color: Color(0xFF83D7F4),
+                                      size: 19,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            cidade.nome,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          if (cidade.descricao.isNotEmpty)
+                                            Text(
+                                              cidade.descricao,
+                                              style: const TextStyle(
+                                                color: Color(0xFFB8C9D5),
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Color(0xFFB8C9D5),
+                                      size: 19,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+            ),
+          ],
           const SizedBox(height: 15),
           if (ocupado)
             const Center(
