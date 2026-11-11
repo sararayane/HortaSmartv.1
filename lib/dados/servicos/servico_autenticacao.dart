@@ -1,15 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class ServicoAutenticacao {
   final FirebaseAuth _autenticacao = FirebaseAuth.instance;
-  final FirebaseFirestore _banco = FirebaseFirestore.instance;
+
+  // Inicialização única do Google Sign-In.
+  static Future<void>? _inicializacaoGoogle;
 
   User? get usuarioAtual => _autenticacao.currentUser;
 
   Stream<User?> get estadoAutenticacao => _autenticacao.authStateChanges();
 
-  // Cadastro de usuário
+  // CADASTRO COM E-MAIL E SENHA
+
   Future<void> cadastrar({
     required String nome,
     required String email,
@@ -27,14 +31,13 @@ class ServicoAutenticacao {
     }
 
     await usuario.updateDisplayName(nome.trim());
-
     await usuario.sendEmailVerification();
 
-    // Encerra a sessão até que o usuário confirme o e-mail.
     await _autenticacao.signOut();
   }
 
-  // Login de usuário
+  // LOGIN COM E-MAIL E SENHA
+
   Future<void> entrar({
     required String email,
     required String senha,
@@ -50,7 +53,6 @@ class ServicoAutenticacao {
       throw Exception('Não foi possível identificar o usuário.');
     }
 
-    // Atualiza os dados de verificação do Firebase.
     await usuario.reload();
 
     final usuarioAtualizado = _autenticacao.currentUser;
@@ -65,42 +67,66 @@ class ServicoAutenticacao {
         message: 'Confirme seu e-mail antes de entrar.',
       );
     }
-
-    // Cria ou atualiza o documento do usuário no Firestore.
-    await _criarOuAtualizarUsuario(usuarioAtualizado);
   }
 
-  // Criar ou atualizar o perfil no Firestore
-  Future<void> _criarOuAtualizarUsuario(User usuario) async {
-    final documento = _banco.collection('usuarios').doc(usuario.uid);
+  // LOGIN COM GOOGLE
 
-    final consulta = await documento.get();
+  Future<UserCredential> entrarComGoogle() async {
+    // WEB: autenticação diretamente pelo Firebase.
 
-    final dados = <String, dynamic>{
-      'nome': usuario.displayName ?? '',
-      'email': usuario.email ?? '',
-      'ativo': true,
-      'ultimoAcesso': FieldValue.serverTimestamp(),
-    };
+    if (kIsWeb) {
+      final provedor = GoogleAuthProvider();
 
-    if (!consulta.exists) {
-      dados['criadoEm'] = FieldValue.serverTimestamp();
+      return await _autenticacao.signInWithPopup(
+        provedor,
+      );
     }
 
-    await documento.set(
-      dados,
-      SetOptions(merge: true),
+    // ANDROID E IOS: Google Sign-In nativo.
+
+    _inicializacaoGoogle ??= GoogleSignIn.instance.initialize();
+
+    await _inicializacaoGoogle!;
+
+    if (!GoogleSignIn.instance.supportsAuthenticate()) {
+      throw FirebaseAuthException(
+        code: 'google-indisponivel',
+        message: 'O acesso com Google não está disponível nesta plataforma.',
+      );
+    }
+
+    final contaGoogle = await GoogleSignIn.instance.authenticate();
+
+    final autenticacaoGoogle = contaGoogle.authentication;
+
+    final idToken = autenticacaoGoogle.idToken;
+
+    if (idToken == null || idToken.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'google-token-ausente',
+        message: 'Não foi possível obter o token do Google.',
+      );
+    }
+
+    final credencial = GoogleAuthProvider.credential(
+      idToken: idToken,
+    );
+
+    return await _autenticacao.signInWithCredential(
+      credencial,
     );
   }
 
-  // Recuperação de senha
+  // RECUPERAÇÃO DE SENHA
+
   Future<void> recuperarSenha(String email) async {
     await _autenticacao.sendPasswordResetEmail(
       email: email.trim(),
     );
   }
 
-  // Encerrar sessão
+  // SAIR DA CONTA
+
   Future<void> sair() async {
     await _autenticacao.signOut();
   }

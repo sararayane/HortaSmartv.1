@@ -49,13 +49,12 @@ class _TelaAberturaState extends State<TelaAbertura>
     _animacaoCarregamento = _criarAnimacao(0.38, 0.75);
     _animacaoRodape = _criarAnimacao(0.65, 0.95);
 
-    // Quando a apresentação terminar, abre o login.
     _controlador.addStatusListener(_aoFinalizarAbertura);
 
     _controlador.forward();
   }
 
-  // NAVEGAÇÃO AUTOMÁTICA PARA LOGIN
+  // TRANSIÇÃO PARA A TELA DE LOGIN
 
   void _aoFinalizarAbertura(AnimationStatus status) {
     if (status != AnimationStatus.completed ||
@@ -67,8 +66,45 @@ class _TelaAberturaState extends State<TelaAbertura>
     _navegandoParaLogin = true;
 
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => const TelaLogin(),
+      PageRouteBuilder<void>(
+        pageBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+        ) {
+          return const TelaLogin();
+        },
+
+        // DURAÇÃO DA TRANSIÇÃO
+
+        transitionDuration: const Duration(milliseconds: 700),
+
+        reverseTransitionDuration: const Duration(milliseconds: 450),
+
+        // EFEITO DE DISSOLUÇÃO
+
+        transitionsBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          child,
+        ) {
+          final curva = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          );
+
+          return FadeTransition(
+            opacity: curva,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.015),
+                end: Offset.zero,
+              ).animate(curva),
+              child: child,
+            ),
+          );
+        },
       ),
     );
   }
@@ -89,12 +125,16 @@ class _TelaAberturaState extends State<TelaAbertura>
 
   @override
   void dispose() {
-    _controlador.removeStatusListener(_aoFinalizarAbertura);
+    _controlador.removeStatusListener(
+      _aoFinalizarAbertura,
+    );
+
     _controlador.dispose();
+
     super.dispose();
   }
 
-  // ANIMAÇÃO DE ENTRADA
+  // ANIMAÇÃO DOS ELEMENTOS
 
   Widget _entradaAnimada({
     required Animation<double> animacao,
@@ -121,7 +161,7 @@ class _TelaAberturaState extends State<TelaAbertura>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // FOTOGRAFIA DE FUNDO
+          // IMAGEM DE FUNDO
 
           Image.asset(
             _imagemFundo,
@@ -143,7 +183,7 @@ class _TelaAberturaState extends State<TelaAbertura>
             },
           ),
 
-          // CAMADA SUAVE PARA LEITURA
+          // CAMADA DE LEITURA
 
           const DecoratedBox(
             decoration: BoxDecoration(
@@ -289,7 +329,6 @@ class _TelaAberturaState extends State<TelaAbertura>
               fontSize: compacto ? 12 : 14,
               color: _textoSecundario,
               height: 1.5,
-              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -383,7 +422,7 @@ class _TelaAberturaState extends State<TelaAbertura>
     );
   }
 
-  // DESTAQUES LADO A LADO
+  // DESTAQUES
 
   Widget _construirDestaques({
     required bool compacto,
