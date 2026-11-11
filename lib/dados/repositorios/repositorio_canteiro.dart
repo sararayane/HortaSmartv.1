@@ -29,10 +29,7 @@ class RepositorioCanteiro {
   Stream<List<Canteiro>> acompanharCanteiros() {
     return _colecao.snapshots().map((snapshot) {
       return snapshot.docs.map((documento) {
-        return Canteiro.fromMap(
-          id: documento.id,
-          dados: documento.data(),
-        );
+        return Canteiro.fromMap(id: documento.id, dados: documento.data());
       }).toList();
     });
   }
@@ -42,10 +39,7 @@ class RepositorioCanteiro {
     final snapshot = await _colecao.get();
 
     return snapshot.docs.map((documento) {
-      return Canteiro.fromMap(
-        id: documento.id,
-        dados: documento.data(),
-      );
+      return Canteiro.fromMap(id: documento.id, dados: documento.data());
     }).toList();
   }
 
@@ -54,12 +48,39 @@ class RepositorioCanteiro {
     await _colecao.doc(canteiro.id).set(canteiro.toMap());
   }
 
-  /// Atualiza os dados de um canteiro existente.
+  /// Atualiza um canteiro.
+  ///
+  /// Quando o campo irrigando muda, registra uma solicitação
+  /// de início ou interrupção na subcoleção eventos_irrigacao.
   Future<void> atualizar(Canteiro canteiro) async {
-    await _colecao.doc(canteiro.id).set(
-          canteiro.toMap(),
-          SetOptions(merge: true),
-        );
+    final referencia = _colecao.doc(canteiro.id);
+
+    final referenciaEvento = referencia.collection('eventos_irrigacao').doc();
+
+    await _firestore.runTransaction((transacao) async {
+      final documentoAnterior = await transacao.get(referencia);
+
+      final dadosAnteriores = documentoAnterior.data();
+
+      final estavaIrrigando = dadosAnteriores?['irrigando'] == true;
+
+      transacao.set(referencia, canteiro.toMap(), SetOptions(merge: true));
+
+      final mudouEstado =
+          documentoAnterior.exists && estavaIrrigando != canteiro.irrigando;
+
+      if (mudouEstado) {
+        transacao.set(referenciaEvento, {
+          'tipo':
+              canteiro.irrigando ? 'inicio_solicitado' : 'parada_solicitada',
+          'registradoEm': FieldValue.serverTimestamp(),
+          'modo': canteiro.modo.name,
+          'origem': 'aplicativo',
+          'estadoConfirmado': false,
+          'umidadeNoMomento': canteiro.umidadeAtual,
+        });
+      }
+    });
   }
 
   /// Exclui um canteiro do Firestore.
@@ -70,31 +91,31 @@ class RepositorioCanteiro {
   /// Dados locais de demonstração.
   /// Mantidos temporariamente para preservar as telas existentes.
   static List<Canteiro> criarDadosDemonstracao() => const [
-        Canteiro(
-          id: 'canteiro-01',
-          nome: 'Canteiro 1',
-          cultura: 'Alface',
-          umidadeAtual: 68,
-          metaUmidade: 65,
-          conectado: true,
-          irrigando: false,
-          modo: ModoIrrigacao.automatico,
-          intervaloHoras: 4,
-          valorSeco: 3000,
-          valorMolhado: 1400,
-        ),
-        Canteiro(
-          id: 'canteiro-02',
-          nome: 'Canteiro 2',
-          cultura: 'Tomate',
-          umidadeAtual: 42,
-          metaUmidade: 55,
-          conectado: true,
-          irrigando: false,
-          modo: ModoIrrigacao.automatico,
-          intervaloHoras: 6,
-          valorSeco: 3050,
-          valorMolhado: 1350,
-        ),
-      ];
+    Canteiro(
+      id: 'canteiro-01',
+      nome: 'Canteiro 1',
+      cultura: 'Alface',
+      umidadeAtual: 68,
+      metaUmidade: 65,
+      conectado: true,
+      irrigando: false,
+      modo: ModoIrrigacao.automatico,
+      intervaloHoras: 4,
+      valorSeco: 3000,
+      valorMolhado: 1400,
+    ),
+    Canteiro(
+      id: 'canteiro-02',
+      nome: 'Canteiro 2',
+      cultura: 'Tomate',
+      umidadeAtual: 42,
+      metaUmidade: 55,
+      conectado: true,
+      irrigando: false,
+      modo: ModoIrrigacao.automatico,
+      intervaloHoras: 6,
+      valorSeco: 3050,
+      valorMolhado: 1350,
+    ),
+  ];
 }

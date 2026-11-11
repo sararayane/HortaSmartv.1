@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:hortasmart/compartilhado/componentes/indicador_umidade.dart';
@@ -20,7 +21,7 @@ class CartaoCanteiro extends StatelessWidget {
   final VoidCallback? aoAlterarFoto;
 
   String get _emoji {
-    switch (canteiro.cultura.toLowerCase()) {
+    switch (canteiro.cultura.trim().toLowerCase()) {
       case 'alface':
       case 'rúcula':
       case 'rucula':
@@ -38,251 +39,304 @@ class CartaoCanteiro extends StatelessWidget {
     }
   }
 
+  Uint8List? _decodificarImagem() {
+    final imagemBase64 = canteiro.imagemBase64;
+
+    if (imagemBase64 == null || imagemBase64.isEmpty) {
+      return null;
+    }
+
+    try {
+      return base64Decode(imagemBase64);
+    } on FormatException {
+      // Uma imagem inválida não deve interromper a construção da tela.
+      return null;
+    }
+  }
+
+  Widget _construirEmoji({required double tamanho}) {
+    return Container(
+      alignment: Alignment.center,
+      color: const Color(0xFFEAF5E9),
+      child: Text(_emoji, style: TextStyle(fontSize: tamanho), maxLines: 1),
+    );
+  }
+
   Widget _construirImagem({
     required double largura,
     required double altura,
+    required double tamanhoEmoji,
+    required double tamanhoBotao,
   }) {
-    final imagemBase64 = canteiro.imagemBase64;
-
-    final temImagem = imagemBase64 != null && imagemBase64.isNotEmpty;
+    final bytes = _decodificarImagem();
 
     return SizedBox(
       width: largura,
       height: altura,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(17),
-              child: temImagem
-                  ? Image.memory(
-                      base64Decode(imagemBase64),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child:
+                bytes != null
+                    ? Image.memory(
+                      bytes,
                       fit: BoxFit.cover,
                       gaplessPlayback: true,
                       errorBuilder: (context, error, stackTrace) {
-                        return _construirEmoji();
+                        return _construirEmoji(tamanho: tamanhoEmoji);
                       },
                     )
-                  : _construirEmoji(),
-            ),
+                    : _construirEmoji(tamanho: tamanhoEmoji),
           ),
-          Positioned(
-            right: 4,
-            bottom: 4,
-            child: Material(
-              color: Colors.white,
-              shape: const CircleBorder(),
-              elevation: 2,
-              child: InkWell(
-                onTap: aoAlterarFoto,
-                customBorder: const CircleBorder(),
-                child: const Padding(
-                  padding: EdgeInsets.all(6),
-                  child: Icon(
-                    Icons.camera_alt_rounded,
-                    size: 15,
-                    color: CoresHortasmart.verde,
+          if (aoAlterarFoto != null)
+            Positioned(
+              right: 4,
+              bottom: 4,
+              child: Material(
+                color: Colors.white,
+                shape: const CircleBorder(),
+                elevation: 2,
+                child: InkWell(
+                  onTap: aoAlterarFoto,
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: EdgeInsets.all(tamanhoBotao),
+                    child: Icon(
+                      Icons.camera_alt_rounded,
+                      size: tamanhoBotao + 8,
+                      color: CoresHortasmart.verde,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _construirEmoji() {
-    return Container(
-      alignment: Alignment.center,
-      color: const Color(0xFFEAF5E9),
-      child: Text(
-        _emoji,
-        style: const TextStyle(fontSize: 35),
-      ),
+  Widget _construirRodape({required bool compacto}) {
+    final corIrrigacao =
+        canteiro.irrigando
+            ? CoresHortasmart.azul
+            : CoresHortasmart.textoSecundario;
+
+    return Wrap(
+      spacing: compacto ? 9 : 14,
+      runSpacing: 5,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.flag_outlined,
+              size: compacto ? 12 : 13,
+              color: CoresHortasmart.textoSecundario,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Meta ${canteiro.metaUmidade.round()}%',
+              style: TextStyle(
+                fontSize: compacto ? 9 : 10,
+                color: CoresHortasmart.textoSecundario,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              canteiro.irrigando
+                  ? Icons.water_drop_rounded
+                  : Icons.pause_circle_outline_rounded,
+              size: compacto ? 13 : 14,
+              color: corIrrigacao,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              canteiro.irrigando ? 'Irrigando' : 'Pausado',
+              style: TextStyle(
+                fontSize: compacto ? 9 : 10,
+                fontWeight: FontWeight.w700,
+                color: corIrrigacao,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _construirConteudo({required bool compacto}) {
+    final estado = classificarUmidade(canteiro.umidadeAtual);
+    final cultura =
+        canteiro.cultura.trim().isNotEmpty
+            ? canteiro.cultura.trim()
+            : canteiro.nome;
+    final identificador = canteiro.id.split('-').last.toUpperCase();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                cultura,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: compacto ? 13 : 15,
+                  color: CoresHortasmart.texto,
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.grey.shade500,
+              size: compacto ? 19 : 22,
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          identificador.isEmpty
+              ? canteiro.nome
+              : '${canteiro.nome} · Sensor $identificador',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: compacto ? 9 : 11,
+            color: CoresHortasmart.textoSecundario,
+          ),
+        ),
+        SizedBox(height: compacto ? 6 : 8),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: compacto ? 5 : 7,
+          runSpacing: 4,
+          children: [
+            Text(
+              '${canteiro.umidadeAtual.round()}%',
+              style: TextStyle(
+                fontSize: compacto ? 21 : 25,
+                height: 1,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.7,
+                color: estado.cor,
+              ),
+            ),
+            Text(
+              'umidade',
+              style: TextStyle(
+                fontSize: compacto ? 9 : 10,
+                color: CoresHortasmart.textoSecundario,
+              ),
+            ),
+            EtiquetaStatus(
+              texto: estado.texto,
+              cor: estado.cor,
+              fundo: estado.fundo,
+            ),
+          ],
+        ),
+        SizedBox(height: compacto ? 6 : 9),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(99),
+          child: LinearProgressIndicator(
+            value: canteiro.umidadeAtual.clamp(0.0, 100.0) / 100.0,
+            minHeight: compacto ? 5 : 6,
+            backgroundColor: const Color(0xFFEAF0E9),
+            valueColor: AlwaysStoppedAnimation<Color>(estado.cor),
+          ),
+        ),
+        SizedBox(height: compacto ? 6 : 7),
+        _construirRodape(compacto: compacto),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final estado = classificarUmidade(canteiro.umidadeAtual);
-
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: aoTocar,
-        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFE5ECE6),
-            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE5ECE6)),
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final estreito = constraints.maxWidth < 280;
+              final largura = constraints.maxWidth;
+              final altura = constraints.maxHeight;
+              final escalaTexto = MediaQuery.textScalerOf(context).scale(1);
+              final compacto = largura < 330 || escalaTexto > 1.15;
+              final muitoEstreito = largura < 205;
+
+              // O layout vertical só é usado quando há altura suficiente.
+              // Em cartões baixos, mantém imagem e informações lado a lado.
+              final layoutVertical = muitoEstreito && altura >= 255;
+              final padding = compacto ? 10.0 : 13.0;
+              final tamanhoImagem =
+                  muitoEstreito
+                      ? 40.0
+                      : compacto
+                      ? 49.0
+                      : 62.0;
+              final alturaImagem =
+                  muitoEstreito
+                      ? 48.0
+                      : compacto
+                      ? 58.0
+                      : 72.0;
 
               final imagem = _construirImagem(
-                largura: estreito ? 48 : 61,
-                altura: estreito ? 58 : 70,
+                largura: tamanhoImagem,
+                altura: alturaImagem,
+                tamanhoEmoji: compacto ? 27 : 35,
+                tamanhoBotao: compacto ? 3 : 4,
               );
 
-              final conteudo = Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            canteiro.cultura,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                              color: CoresHortasmart.texto,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: Colors.grey,
-                          size: 22,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${canteiro.nome} · Sensor '
-                      '${canteiro.id.split('-').last.toUpperCase()}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: CoresHortasmart.textoSecundario,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 7,
-                      runSpacing: 5,
-                      children: [
-                        Text(
-                          '${canteiro.umidadeAtual.round()}%',
-                          style: TextStyle(
-                            fontSize: 25,
-                            height: 1,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.7,
-                            color: estado.cor,
-                          ),
-                        ),
-                        const Text(
-                          'umidade',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: CoresHortasmart.textoSecundario,
-                          ),
-                        ),
-                        EtiquetaStatus(
-                          texto: estado.texto,
-                          cor: estado.cor,
-                          fundo: estado.fundo,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 9),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(99),
-                      child: LinearProgressIndicator(
-                        value: canteiro.umidadeAtual.clamp(0, 100) / 100,
-                        minHeight: 6,
-                        backgroundColor: const Color(0xFFEAF0E9),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          estado.cor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 7),
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 5,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+              final conteudo = _construirConteudo(compacto: compacto);
+
+              return Padding(
+                padding: EdgeInsets.all(padding),
+                child:
+                    layoutVertical
+                        ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.flag_outlined,
-                              size: 13,
-                              color: CoresHortasmart.textoSecundario,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Meta ${canteiro.metaUmidade.round()}%',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: CoresHortasmart.textoSecundario,
+                            Center(child: imagem),
+                            const SizedBox(height: 9),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                physics: const ClampingScrollPhysics(),
+                                child: conteudo,
                               ),
                             ),
                           ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                        )
+                        : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(
-                              canteiro.irrigando
-                                  ? Icons.water_drop_rounded
-                                  : Icons.pause_circle_outline_rounded,
-                              size: 14,
-                              color: canteiro.irrigando
-                                  ? CoresHortasmart.azul
-                                  : CoresHortasmart.textoSecundario,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              canteiro.irrigando ? 'Irrigando' : 'Pausado',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: canteiro.irrigando
-                                    ? CoresHortasmart.azul
-                                    : CoresHortasmart.textoSecundario,
-                              ),
-                            ),
+                            imagem,
+                            SizedBox(width: compacto ? 9 : 13),
+                            Expanded(child: conteudo),
                           ],
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-
-              if (estreito) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    imagem,
-                    const SizedBox(height: 10),
-                    conteudo,
-                  ],
-                );
-              }
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  imagem,
-                  const SizedBox(width: 13),
-                  conteudo,
-                ],
               );
             },
           ),
