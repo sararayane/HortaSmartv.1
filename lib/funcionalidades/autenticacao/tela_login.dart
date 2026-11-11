@@ -288,14 +288,43 @@ class _TelaLoginState extends State<TelaLogin> {
     }
   }
 
-  // ABRIR CADASTRO
+  // ABRIR CADASTRO COM TRANSIÇÃO SUAVE
 
   void _abrirCadastro() {
     if (_ocupado) return;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(builder: (_) => const TelaCadastro()),
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        // Permite visualizar o login por trás
+        // enquanto o cadastro aparece ou desaparece.
+        opaque: false,
+
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return const TelaCadastro();
+        },
+
+        transitionDuration: const Duration(milliseconds: 650),
+
+        reverseTransitionDuration: const Duration(milliseconds: 650),
+
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curva = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          );
+
+          return FadeTransition(
+            opacity: curva,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.015, 0),
+                end: Offset.zero,
+              ).animate(curva),
+              child: child,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -360,6 +389,7 @@ class _TelaLoginState extends State<TelaLogin> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _construirRotulo('E-mail'),
+
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
@@ -394,6 +424,7 @@ class _TelaLoginState extends State<TelaLogin> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _construirRotulo('Senha'),
+
         TextFormField(
           controller: _senhaController,
           obscureText: !_mostrarSenha,
@@ -482,6 +513,7 @@ class _TelaLoginState extends State<TelaLogin> {
             ),
           ),
         ),
+
         TextButton(
           onPressed: _ocupado ? null : _recuperarSenha,
           style: TextButton.styleFrom(
@@ -566,6 +598,7 @@ class _TelaLoginState extends State<TelaLogin> {
     return Row(
       children: [
         const Expanded(child: Divider(color: Color(0xFFCAD9CD), thickness: 1)),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 13),
           child: Text(
@@ -577,6 +610,7 @@ class _TelaLoginState extends State<TelaLogin> {
             ),
           ),
         ),
+
         const Expanded(child: Divider(color: Color(0xFFCAD9CD), thickness: 1)),
       ],
     );
@@ -644,6 +678,7 @@ class _TelaLoginState extends State<TelaLogin> {
           'Não tem uma conta? ',
           style: TextStyle(color: _textoSecundario, fontSize: 13),
         ),
+
         GestureDetector(
           onTap: _ocupado ? null : _abrirCadastro,
           child: const Text(
@@ -706,6 +741,7 @@ class _TelaLoginState extends State<TelaLogin> {
               ),
             ),
           ),
+
           Positioned(
             bottom: -100,
             left: -90,
