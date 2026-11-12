@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../compartilhado/componentes/area_pagina.dart';
-import '../../compartilhado/componentes/indicador_umidade.dart';
 import '../../compartilhado/componentes/titulo_secao.dart';
 import '../../compartilhado/constantes/cores.dart';
 import '../../dados/modelos/canteiro.dart';
@@ -30,40 +29,40 @@ class TelaConfiguracoes extends StatefulWidget {
 class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
   final GlobalKey _chaveCanteiros = GlobalKey();
 
-  Future<void> _novoCanteiro(BuildContext context) async {
-    final novo = await showDialog<Canteiro>(
+  static const List<int> _intervalosDisponiveis = [1, 2, 4, 6, 8, 12, 24];
+
+  Future<void> _abrirFormulario({Canteiro? canteiro}) async {
+    final resultado = await showDialog<Canteiro>(
       context: context,
-      builder: (_) => const FormularioCanteiro(),
+      builder: (_) => FormularioCanteiro(canteiro: canteiro),
     );
 
-    if (novo == null || !context.mounted) return;
+    if (!mounted || resultado == null) return;
 
-    widget.aoAdicionarCanteiro(novo);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${novo.nome} foi adicionado à prévia.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (canteiro == null) {
+      widget.aoAdicionarCanteiro(resultado);
+      _mensagem('${resultado.nome} foi cadastrado com sucesso.');
+    } else {
+      widget.aoAtualizarCanteiro(resultado);
+      _mensagem('${resultado.nome} foi atualizado com sucesso.');
+    }
   }
 
-  Future<void> _calibrar(BuildContext context, Canteiro canteiro) async {
+  Future<void> _calibrar(Canteiro canteiro) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TelaCalibracao(
-          canteiro: canteiro,
-          aoSalvar: widget.aoAtualizarCanteiro,
-        ),
+        builder:
+            (_) => TelaCalibracao(
+              canteiro: canteiro,
+              aoSalvar: widget.aoAtualizarCanteiro,
+            ),
       ),
     );
   }
 
-  Future<void> _selecionarCanteiroParaCalibrar(
-    BuildContext context,
-  ) async {
+  Future<void> _selecionarCanteiroParaCalibrar() async {
     if (widget.canteiros.isEmpty) {
-      _mensagem(context, 'Cadastre um canteiro antes de calibrar um sensor.');
+      _mensagem('Cadastre um canteiro antes de calibrar um sensor.');
       return;
     }
 
@@ -71,442 +70,512 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(sheetContext).size.height * 0.62,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      'Qual sensor deseja calibrar?',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                        color: CoresHortasmart.texto,
-                      ),
-                    ),
-                  ),
-                  ...widget.canteiros.map(
-                    (item) => ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      leading: const CircleAvatar(
-                        backgroundColor: CoresHortasmart.verdeClaro,
-                        child: Icon(
-                          Icons.sensors_rounded,
-                          color: CoresHortasmart.verde,
+      builder:
+          (sheetContext) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(sheetContext).size.height * 0.62,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          'Qual sensor deseja calibrar?',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: CoresHortasmart.texto,
+                          ),
                         ),
                       ),
-                      title: Text(
-                        item.cultura,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
+                      ...widget.canteiros.map(
+                        (item) => ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          leading: const CircleAvatar(
+                            backgroundColor: CoresHortasmart.verdeClaro,
+                            child: Icon(
+                              Icons.sensors_rounded,
+                              color: CoresHortasmart.verde,
+                            ),
+                          ),
+                          title: Text(
+                            item.cultura,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(item.nome),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.pop(sheetContext, item),
                         ),
                       ),
-                      subtitle: Text(
-                        '${item.nome} · Sensor ${item.id.split('-').last.toUpperCase()}',
-                      ),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => Navigator.pop(sheetContext, item),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
     );
 
-    if (canteiro != null && context.mounted) {
-      await _calibrar(context, canteiro);
+    if (canteiro != null && mounted) {
+      await _calibrar(canteiro);
     }
   }
 
-  Future<void> _mostrarDispositivos(BuildContext context) async {
+  Future<void> _mostrarDispositivos() async {
+    final conectados =
+        widget.canteiros.where((canteiro) => canteiro.conectado).length;
+
+    final total = widget.canteiros.length;
+
     await showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: const Icon(
-          Icons.memory_rounded,
-          color: CoresHortasmart.verde,
-          size: 30,
-        ),
-        title: const Text('Dispositivos ESP32'),
-        content: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: 390,
-            maxHeight: MediaQuery.of(dialogContext).size.height * 0.62,
-          ),
-          child: SingleChildScrollView(
-            child: widget.canteiros.isEmpty
-                ? const Text('Nenhum dispositivo associado a um canteiro.')
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: widget.canteiros
-                        .map(
-                          (canteiro) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(
-                              canteiro.conectado
-                                  ? Icons.wifi_rounded
-                                  : Icons.wifi_off_rounded,
-                              color: canteiro.conectado
-                                  ? CoresHortasmart.verde
-                                  : CoresHortasmart.vermelho,
-                            ),
-                            title: Text(
-                              'ESP32 · ${canteiro.id.split('-').last.toUpperCase()}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
+      builder:
+          (dialogContext) => AlertDialog(
+            icon: const Icon(
+              Icons.memory_rounded,
+              color: CoresHortasmart.verde,
+              size: 30,
+            ),
+            title: const Text('Dispositivo ESP32'),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 390,
+                maxHeight: MediaQuery.of(dialogContext).size.height * 0.65,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                        color: CoresHortasmart.verdeClaro,
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.developer_board_rounded,
+                                color: CoresHortasmart.verde,
                               ),
-                            ),
-                            subtitle: Text(
-                              '${canteiro.nome} · ${canteiro.cultura}',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            trailing: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: canteiro.conectado
-                                    ? CoresHortasmart.verde
-                                    : CoresHortasmart.vermelho,
-                                shape: BoxShape.circle,
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Central de controle',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: CoresHortasmart.texto,
+                                  ),
+                                ),
                               ),
+                            ],
+                          ),
+                          SizedBox(height: 7),
+                          Text(
+                            'Um ESP32 poderá controlar os dois canteiros, '
+                            'acionando cada válvula de forma independente.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              height: 1.45,
+                              color: CoresHortasmart.textoSecundario,
                             ),
                           ),
-                        )
-                        .toList(),
-                  ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Canteiros associados: $conectados de $total com conexão registrada',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (widget.canteiros.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          'Nenhum canteiro cadastrado.',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      )
+                    else
+                      ...widget.canteiros.map(
+                        (canteiro) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            canteiro.conectado
+                                ? Icons.wifi_rounded
+                                : Icons.wifi_off_rounded,
+                            color:
+                                canteiro.conectado
+                                    ? CoresHortasmart.verde
+                                    : CoresHortasmart.vermelho,
+                          ),
+                          title: Text(
+                            canteiro.nome,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                          subtitle: Text(
+                            canteiro.conectado
+                                ? 'Conexão registrada'
+                                : 'Sem conexão registrada',
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          trailing: Container(
+                            width: 9,
+                            height: 9,
+                            decoration: BoxDecoration(
+                              color:
+                                  canteiro.conectado
+                                      ? CoresHortasmart.verde
+                                      : CoresHortasmart.vermelho,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'A comunicação em tempo real dependerá da integração '
+                      'do ESP32 com o Firebase.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.4,
+                        color: CoresHortasmart.textoSecundario,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Fechar'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
     );
   }
 
-  Future<void> _editarMetas(
-    BuildContext contextoPai, {
-    String? idInicial,
-  }) async {
+  Future<void> _editarMetas({String? idInicial}) async {
     if (widget.canteiros.isEmpty) {
-      _mensagem(contextoPai, 'Cadastre um canteiro antes de definir uma meta.');
+      _mensagem('Cadastre um canteiro antes de definir uma meta.');
       return;
     }
 
-    var inicial = widget.canteiros.first;
-
-    for (final item in widget.canteiros) {
-      if (item.id == idInicial) {
-        inicial = item;
-        break;
-      }
-    }
+    final inicial = widget.canteiros.firstWhere(
+      (item) => item.id == idInicial,
+      orElse: () => widget.canteiros.first,
+    );
 
     var idSelecionado = inicial.id;
     var meta = inicial.metaUmidade;
 
     await showDialog<void>(
-      context: contextoPai,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (contextInterno, setDialogState) {
-          Canteiro selecionado = widget.canteiros.first;
+      context: context,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder: (contextInterno, setDialogState) {
+              final selecionado = widget.canteiros.firstWhere(
+                (item) => item.id == idSelecionado,
+                orElse: () => widget.canteiros.first,
+              );
 
-          for (final item in widget.canteiros) {
-            if (item.id == idSelecionado) {
-              selecionado = item;
-              break;
-            }
-          }
-
-          return AlertDialog(
-            title: const Text('Meta de umidade'),
-            content: SizedBox(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'A meta é individual para cada plantação.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CoresHortasmart.textoSecundario,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    initialValue: idSelecionado,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Canteiro',
-                    ),
-                    items: widget.canteiros
-                        .map(
-                          (item) => DropdownMenuItem(
-                            value: item.id,
-                            child: Text(
-                              '${item.cultura} · ${item.nome}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (id) {
-                      if (id == null) return;
-
-                      Canteiro? item;
-
-                      for (final canteiro in widget.canteiros) {
-                        if (canteiro.id == id) {
-                          item = canteiro;
-                          break;
-                        }
-                      }
-
-                      setDialogState(() {
-                        idSelecionado = id;
-                        meta = item?.metaUmidade ?? 65;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
+              return AlertDialog(
+                title: const Text('Meta de umidade'),
+                content: SizedBox(
+                  width: 360,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Expanded(
-                        child: Text(
-                          'Meta desejada',
-                          style: TextStyle(fontWeight: FontWeight.w800),
+                      const Text(
+                        'A meta de umidade é individual para cada plantação.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: CoresHortasmart.textoSecundario,
                         ),
                       ),
-                      Text(
-                        '${meta.round()}%',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 22,
-                          color: CoresHortasmart.verde,
+                      const SizedBox(height: 15),
+                      DropdownButtonFormField<String>(
+                        initialValue: idSelecionado,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Canteiro',
                         ),
+                        items:
+                            widget.canteiros.map((item) {
+                              return DropdownMenuItem(
+                                value: item.id,
+                                child: Text(
+                                  '${item.cultura} · ${item.nome}',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (id) {
+                          if (id == null) return;
+
+                          final item = widget.canteiros.firstWhere(
+                            (canteiro) => canteiro.id == id,
+                          );
+
+                          setDialogState(() {
+                            idSelecionado = id;
+                            meta = item.metaUmidade;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Meta desejada',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          Text(
+                            '${meta.round()}%',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              color: CoresHortasmart.verde,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: meta.clamp(0, 100).toDouble(),
+                        min: 0,
+                        max: 100,
+                        divisions: 20,
+                        label: '${meta.round()}%',
+                        onChanged: (valor) {
+                          setDialogState(() => meta = valor);
+                        },
                       ),
                     ],
                   ),
-                  Slider(
-                    value: meta.clamp(0, 100).toDouble(),
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    label: '${meta.round()}%',
-                    onChanged: (valor) {
-                      setDialogState(() => meta = valor);
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      widget.aoAtualizarCanteiro(
+                        selecionado.copiarCom(metaUmidade: meta),
+                      );
+
+                      Navigator.pop(dialogContext);
+                      _mensagem('Meta de umidade atualizada.');
                     },
+                    child: const Text('Salvar meta'),
                   ),
                 ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  widget.aoAtualizarCanteiro(
-                    selecionado.copiarCom(metaUmidade: meta),
-                  );
-
-                  Navigator.pop(dialogContext);
-                  _mensagem(contextoPai, 'Meta salva nesta prévia.');
-                },
-                child: const Text('Salvar meta'),
-              ),
-            ],
-          );
-        },
-      ),
+              );
+            },
+          ),
     );
   }
 
-  Future<void> _editarProgramacao(BuildContext contextoPai) async {
+  Future<void> _editarProgramacao() async {
     if (widget.canteiros.isEmpty) {
-      _mensagem(
-        contextoPai,
-        'Cadastre um canteiro antes de configurar a programação.',
-      );
+      _mensagem('Cadastre um canteiro antes de configurar a programação.');
       return;
     }
 
-    var idSelecionado = widget.canteiros.first.id;
-    var intervalo = widget.canteiros.first.intervaloHoras;
+    final inicial = widget.canteiros.first;
+
+    var idSelecionado = inicial.id;
+    var intervalo =
+        _intervalosDisponiveis.contains(inicial.intervaloHoras)
+            ? inicial.intervaloHoras
+            : 4;
 
     await showDialog<void>(
-      context: contextoPai,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (contextInterno, setDialogState) {
-          Canteiro selecionado = widget.canteiros.first;
+      context: context,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder: (contextInterno, setDialogState) {
+              final selecionado = widget.canteiros.firstWhere(
+                (item) => item.id == idSelecionado,
+                orElse: () => widget.canteiros.first,
+              );
 
-          for (final item in widget.canteiros) {
-            if (item.id == idSelecionado) {
-              selecionado = item;
-              break;
-            }
-          }
+              return AlertDialog(
+                title: const Text('Horários e programação'),
+                content: SizedBox(
+                  width: 360,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Defina o intervalo de verificação da irrigação automática.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: CoresHortasmart.textoSecundario,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      DropdownButtonFormField<String>(
+                        initialValue: idSelecionado,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Canteiro',
+                        ),
+                        items:
+                            widget.canteiros.map((item) {
+                              return DropdownMenuItem(
+                                value: item.id,
+                                child: Text(
+                                  '${item.cultura} · ${item.nome}',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (id) {
+                          if (id == null) return;
 
-          return AlertDialog(
-            title: const Text('Horários e programação'),
-            content: SizedBox(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Defina com que intervalo o ESP32 deve reavaliar a irrigação automática.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: CoresHortasmart.textoSecundario,
-                    ),
+                          final item = widget.canteiros.firstWhere(
+                            (canteiro) => canteiro.id == id,
+                          );
+
+                          setDialogState(() {
+                            idSelecionado = id;
+                            intervalo =
+                                _intervalosDisponiveis.contains(
+                                      item.intervaloHoras,
+                                    )
+                                    ? item.intervaloHoras
+                                    : 4;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        initialValue: intervalo,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Verificar a cada',
+                        ),
+                        items:
+                            _intervalosDisponiveis.map((horas) {
+                              return DropdownMenuItem(
+                                value: horas,
+                                child: Text(
+                                  '$horas ${horas == 1 ? 'hora' : 'horas'}',
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (valor) {
+                          if (valor != null) {
+                            setDialogState(() => intervalo = valor);
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    initialValue: idSelecionado,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Canteiro',
-                    ),
-                    items: widget.canteiros
-                        .map(
-                          (item) => DropdownMenuItem(
-                            value: item.id,
-                            child: Text(
-                              '${item.cultura} · ${item.nome}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (id) {
-                      if (id == null) return;
-
-                      Canteiro? item;
-
-                      for (final canteiro in widget.canteiros) {
-                        if (canteiro.id == id) {
-                          item = canteiro;
-                          break;
-                        }
-                      }
-
-                      setDialogState(() {
-                        idSelecionado = id;
-                        intervalo = item?.intervaloHoras ?? 4;
-                      });
-                    },
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    initialValue: intervalo,
-                    decoration: const InputDecoration(
-                      labelText: 'Verificar a cada',
-                    ),
-                    items: const [1, 2, 4, 6, 8, 12, 24]
-                        .map(
-                          (h) => DropdownMenuItem(
-                            value: h,
-                            child: Text('$h ${h == 1 ? 'hora' : 'horas'}'),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (valor) {
-                      if (valor != null) {
-                        setDialogState(() => intervalo = valor);
-                      }
+                  FilledButton(
+                    onPressed: () {
+                      widget.aoAtualizarCanteiro(
+                        selecionado.copiarCom(intervaloHoras: intervalo),
+                      );
+
+                      Navigator.pop(dialogContext);
+                      _mensagem('Programação atualizada.');
                     },
+                    child: const Text('Salvar'),
                   ),
                 ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  widget.aoAtualizarCanteiro(
-                    selecionado.copiarCom(intervaloHoras: intervalo),
-                  );
-
-                  Navigator.pop(dialogContext);
-                  _mensagem(contextoPai, 'Programação salva nesta prévia.');
-                },
-                child: const Text('Salvar'),
-              ),
-            ],
-          );
-        },
-      ),
+              );
+            },
+          ),
     );
   }
 
-  Future<void> _confirmarRemocao(
-    BuildContext context,
-    Canteiro canteiro,
-  ) async {
+  Future<void> _confirmarRemocao(Canteiro canteiro) async {
     final confirmar = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Remover canteiro?'),
-        content: Text('Deseja remover ${canteiro.nome} desta prévia?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
+      builder:
+          (dialogContext) => AlertDialog(
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: CoresHortasmart.vermelho,
+              size: 30,
+            ),
+            title: const Text('Remover canteiro?'),
+            content: Text(
+              'Deseja realmente remover "${canteiro.nome}"? '
+              'Essa ação não poderá ser desfeita.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: CoresHortasmart.vermelho,
+                ),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Remover'),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Remover'),
-          ),
-        ],
-      ),
     );
 
-    if (confirmar == true) {
+    if (confirmar == true && mounted) {
       widget.aoRemoverCanteiro(canteiro.id);
+      _mensagem('${canteiro.nome} foi removido.');
     }
   }
 
   void _rolarParaCanteiros() {
-    final context = _chaveCanteiros.currentContext;
+    final contexto = _chaveCanteiros.currentContext;
 
-    if (context != null) {
+    if (contexto != null) {
       Scrollable.ensureVisible(
-        context,
+        contexto,
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
       );
     }
   }
 
-  void _mensagem(BuildContext context, String mensagem) {
+  void _mensagem(String mensagem) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensagem),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(mensagem), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -519,32 +588,32 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
       _AtalhoConfiguracao(
         Icons.grass_rounded,
         'Gerenciar canteiros',
-        'Cadastrar, editar e remover canteiros',
+        'Cadastrar, editar e remover plantações',
         _rolarParaCanteiros,
       ),
       _AtalhoConfiguracao(
         Icons.memory_rounded,
-        'Dispositivos ESP32',
-        'Gerenciar e associar dispositivos',
-        () => _mostrarDispositivos(context),
+        'Dispositivo ESP32',
+        'Visualizar as associações e conexões',
+        _mostrarDispositivos,
       ),
       _AtalhoConfiguracao(
         Icons.sensors_rounded,
-        'Calibração do sensor',
+        'Calibração dos sensores',
         'Configurar referências de leitura',
-        () => _selecionarCanteiroParaCalibrar(context),
+        _selecionarCanteiroParaCalibrar,
       ),
       _AtalhoConfiguracao(
         Icons.track_changes_rounded,
         'Meta de umidade',
-        'Definir uma meta por plantação',
-        () => _editarMetas(context),
+        'Definir uma meta para cada plantação',
+        () => _editarMetas(),
       ),
       _AtalhoConfiguracao(
         Icons.schedule_rounded,
         'Horários e programação',
         'Configurar o intervalo automático',
-        () => _editarProgramacao(context),
+        _editarProgramacao,
       ),
     ];
 
@@ -555,7 +624,6 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
           children: [
             const SizedBox(height: 13),
 
-            // Banner de dispositivos
             Container(
               padding: const EdgeInsets.all(17),
               decoration: BoxDecoration(
@@ -576,7 +644,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: const Icon(
-                      Icons.memory_rounded,
+                      Icons.settings_suggest_rounded,
                       color: Colors.white,
                       size: 26,
                     ),
@@ -587,7 +655,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Central de dispositivos',
+                          'Central de configurações',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
@@ -596,7 +664,8 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '$conectados conectados · ${widget.canteiros.length} canteiros cadastrados',
+                          '$conectados conexões registradas · '
+                          '${widget.canteiros.length} canteiros cadastrados',
                           style: const TextStyle(
                             color: Color(0xFFD6F0E1),
                             fontSize: 11,
@@ -605,16 +674,12 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.wifi_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.tune_rounded, color: Colors.white, size: 25),
                 ],
               ),
             ),
 
-            // Perfil do usuário
             const SizedBox(height: 20),
             const CartaoPerfil(),
 
@@ -625,20 +690,20 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             LayoutBuilder(
               builder: (context, constraints) {
                 final colunas = constraints.maxWidth >= 760 ? 2 : 1;
+
                 final largura =
                     (constraints.maxWidth - (colunas - 1) * 10) / colunas;
 
                 return Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  children: atalhos
-                      .map(
-                        (atalho) => SizedBox(
+                  children:
+                      atalhos.map((atalho) {
+                        return SizedBox(
                           width: largura,
                           child: _CartaoAtalho(atalho: atalho),
-                        ),
-                      )
-                      .toList(),
+                        );
+                      }).toList(),
                 );
               },
             ),
@@ -652,7 +717,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   child: TituloSecao(titulo: 'Canteiros cadastrados'),
                 ),
                 FilledButton.icon(
-                  onPressed: () => _novoCanteiro(context),
+                  onPressed: () => _abrirFormulario(),
                   icon: const Icon(Icons.add_rounded, size: 18),
                   label: const Text('Novo canteiro'),
                 ),
@@ -668,9 +733,34 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFFE5ECE6)),
                 ),
-                child: const Text(
-                  'Nenhum canteiro cadastrado. Use “Novo canteiro” para começar.',
+                child: const Column(
+                  children: [
+                    Icon(
+                      Icons.grass_outlined,
+                      size: 34,
+                      color: CoresHortasmart.textoSecundario,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Nenhum canteiro cadastrado.',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: CoresHortasmart.texto,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Use o botão "Novo canteiro" para adicionar sua primeira plantação.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.4,
+                        color: CoresHortasmart.textoSecundario,
+                      ),
+                    ),
+                  ],
                 ),
               )
             else
@@ -679,10 +769,10 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _CartaoCanteiroConfiguracao(
                     canteiro: canteiro,
-                    aoCalibrar: () => _calibrar(context, canteiro),
-                    aoRemover: () => _confirmarRemocao(context, canteiro),
-                    aoEditarMeta: () =>
-                        _editarMetas(context, idInicial: canteiro.id),
+                    aoCalibrar: () => _calibrar(canteiro),
+                    aoEditar: () => _abrirFormulario(canteiro: canteiro),
+                    aoRemover: () => _confirmarRemocao(canteiro),
+                    aoEditarMeta: () => _editarMetas(idInicial: canteiro.id),
                   ),
                 ),
               ),
@@ -707,7 +797,9 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Cada sensor deve ser calibrado individualmente. Registre as leituras brutas de referência seca e úmida do próprio sensor, pois os valores podem variar entre módulos.',
+                      'Cada sensor deve ser calibrado individualmente. '
+                      'Registre as leituras brutas de referência seca e úmida '
+                      'do próprio sensor, pois os valores podem variar entre módulos.',
                       style: TextStyle(
                         fontSize: 11,
                         height: 1.45,
@@ -822,12 +914,14 @@ class _CartaoCanteiroConfiguracao extends StatelessWidget {
   const _CartaoCanteiroConfiguracao({
     required this.canteiro,
     required this.aoCalibrar,
+    required this.aoEditar,
     required this.aoRemover,
     required this.aoEditarMeta,
   });
 
   final Canteiro canteiro;
   final VoidCallback aoCalibrar;
+  final VoidCallback aoEditar;
   final VoidCallback aoRemover;
   final VoidCallback aoEditarMeta;
 
@@ -847,18 +941,46 @@ class _CartaoCanteiroConfiguracao extends StatelessWidget {
     }
   }
 
+  Color get _corUmidade {
+    if (canteiro.umidadeAtual < 30) {
+      return CoresHortasmart.vermelho;
+    }
+
+    if (canteiro.umidadeAtual < canteiro.metaUmidade) {
+      return const Color(0xFFE5A000);
+    }
+
+    return CoresHortasmart.verde;
+  }
+
+  String get _textoUmidade {
+    if (canteiro.umidadeAtual < 30) {
+      return 'Crítico';
+    }
+
+    if (canteiro.umidadeAtual < canteiro.metaUmidade) {
+      return 'Abaixo da meta';
+    }
+
+    return 'Adequado';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final estado = classificarUmidade(canteiro.umidadeAtual);
+    final corUmidade = _corUmidade;
+
+    final corConexao =
+        canteiro.conectado ? CoresHortasmart.verde : CoresHortasmart.vermelho;
 
     return Container(
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE5ECE6)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -870,10 +992,7 @@ class _CartaoCanteiroConfiguracao extends StatelessWidget {
                   color: CoresHortasmart.verdeClaro,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text(
-                  _emoji,
-                  style: const TextStyle(fontSize: 25),
-                ),
+                child: Text(_emoji, style: const TextStyle(fontSize: 25)),
               ),
               const SizedBox(width: 11),
               Expanded(
@@ -881,7 +1000,9 @@ class _CartaoCanteiroConfiguracao extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      canteiro.cultura,
+                      canteiro.nome,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -890,15 +1011,15 @@ class _CartaoCanteiroConfiguracao extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${canteiro.nome} · Sensor ${canteiro.id.split('-').last.toUpperCase()}',
+                      canteiro.cultura,
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: CoresHortasmart.textoSecundario,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Meta: ${canteiro.metaUmidade.round()}%',
+                      'Meta de umidade: ${canteiro.metaUmidade.round()}%',
                       style: const TextStyle(
                         fontSize: 10,
                         color: CoresHortasmart.textoSecundario,
@@ -907,37 +1028,84 @@ class _CartaoCanteiroConfiguracao extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: canteiro.conectado
-                      ? estado.cor
-                      : CoresHortasmart.vermelho,
-                  shape: BoxShape.circle,
-                ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 9,
+                    height: 9,
+                    decoration: BoxDecoration(
+                      color: corConexao,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    canteiro.conectado ? 'Conectado' : 'Desconectado',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: corConexao,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: corUmidade.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.water_drop_rounded, color: corUmidade, size: 16),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    'Umidade atual: ${canteiro.umidadeAtual.round()}%',
+                    style: TextStyle(
+                      color: corUmidade,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                Text(
+                  _textoUmidade,
+                  style: TextStyle(
+                    color: corUmidade,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: aoCalibrar,
-                  icon: const Icon(Icons.tune_rounded, size: 17),
-                  label: const Text('Calibrar'),
-                ),
+              OutlinedButton.icon(
+                onPressed: aoCalibrar,
+                icon: const Icon(Icons.tune_rounded, size: 16),
+                label: const Text('Calibrar'),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: aoEditarMeta,
-                  icon: const Icon(Icons.track_changes_rounded, size: 17),
-                  label: const Text('Meta'),
-                ),
+              OutlinedButton.icon(
+                onPressed: aoEditarMeta,
+                icon: const Icon(Icons.track_changes_rounded, size: 16),
+                label: const Text('Meta'),
               ),
-              const SizedBox(width: 4),
+              OutlinedButton.icon(
+                onPressed: aoEditar,
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                label: const Text('Editar'),
+              ),
               IconButton(
                 onPressed: aoRemover,
                 tooltip: 'Remover canteiro',
